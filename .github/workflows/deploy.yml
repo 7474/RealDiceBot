@@ -1,0 +1,55 @@
+on:
+  release:
+    types: [created]
+
+env:
+  AZURE_WEBAPP_NAME: RealDiceBot
+  AZURE_WEBAPP_PACKAGE_PATH: './RealDiceBot'
+  DOTNET_VERSION: '3.1'
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }} 
+
+    - name: dotnet build and publish
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+        dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' 
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # --no-wait オプションを付ければジョブはすぐ完了するが、それではデプロイ結果が分からないので待つ。
+    - name: Deploy ARM Template
+      uses: azure/CLI@v1
+      with:
+        inlineScript: >
+          az deployment group create
+          --no-prompt
+          --mode Complete
+          --resource-group "dicebot"
+          --template-file "./RealDiceBot/DeploymentTemplates/template-with-preexisting-rg.json"
+          --parameters 
+          appId="a35637a9-0577-42ee-893e-95f26f885e8d" 
+          appSecret="${{ secrets.REAL_DICE_BOT_SECRET }}" 
+          botId="RealDiceBot" 
+          newWebAppName="RealDiceBot" 
+          newAppServicePlanName="RealDiceBotPlan" 
+          appServicePlanLocation="Japan East" 
+          --name "RealDiceBot"
+
+    - name: 'Run Azure webapp deploy action using azure/login@v1 credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'       

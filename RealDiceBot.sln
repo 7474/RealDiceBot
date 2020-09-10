@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealDiceBot", "RealDiceBot\RealDiceBot.csproj", "{DDF89DBC-7CE9-4853-9E1B-C4D4435AA364}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealDiceCommon", "RealDiceCommon\RealDiceCommon.csproj", "{44C3256C-1EC1-450A-BC64-99050AACBC86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealDiceFunctions", "RealDiceFunctions\RealDiceFunctions.csproj", "{992FFED6-A194-4C1F-8627-7BD54F4A86F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{DDF89DBC-7CE9-4853-9E1B-C4D4435AA364}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDF89DBC-7CE9-4853-9E1B-C4D4435AA364}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDF89DBC-7CE9-4853-9E1B-C4D4435AA364}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44C3256C-1EC1-450A-BC64-99050AACBC86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44C3256C-1EC1-450A-BC64-99050AACBC86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44C3256C-1EC1-450A-BC64-99050AACBC86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44C3256C-1EC1-450A-BC64-99050AACBC86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{992FFED6-A194-4C1F-8627-7BD54F4A86F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{992FFED6-A194-4C1F-8627-7BD54F4A86F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{992FFED6-A194-4C1F-8627-7BD54F4A86F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{992FFED6-A194-4C1F-8627-7BD54F4A86F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

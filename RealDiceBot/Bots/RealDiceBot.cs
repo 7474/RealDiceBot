@@ -23,7 +23,6 @@ namespace RealDiceBot.Bots
     {
         private readonly string _botId;
         private readonly ILogger<RealDiceBot> logger;
-        private readonly Random randomizer = new Random();
         private readonly IRollService rollService;
 
         public RealDiceBot(IConfiguration configuration, IRollService rollService, ILoggerFactory logger)
@@ -38,8 +37,7 @@ namespace RealDiceBot.Bots
             var rollRequest = RollRequest.Real1D6;
             await rollService.RequestAsync(turnContext.Activity, rollRequest);
 
-            var result = randomizer.Next(1, 7);
-            var replyText = $"1d6 = {result} ?";
+            var replyText = $"1d6? Wait a minute!";
             await turnContext.SendActivityAsync(MessageFactory.Text(replyText, replyText), cancellationToken);
         }
 
@@ -66,8 +64,11 @@ namespace RealDiceBot.Bots
                 {
                     logger.LogInformation(continueConversationActivity.Value as string);
                     var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
+                    var message = 
+                        $"1d6 = {res.Results[0].Results[0]} !\n" +
+                        $"> {continueConversationActivity.Text}";
 
-                    await context.SendActivityAsync("Result by Functions: " + RealDiceConverter.Serialize(res.Results));
+                    await context.SendActivityAsync(message);
                 }, cancellationToken);
             }
             else

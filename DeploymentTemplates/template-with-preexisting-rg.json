@@ -63,6 +63,14 @@
             "metadata": {
                 "description": "The globally unique name of the Web App. Defaults to the value passed in for \"botId\"."
             }
+        },
+        "functionAppName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS"
         }
     },
     "variables": {
@@ -70,11 +78,26 @@
         "useExistingAppServicePlan": "[not(equals(variables('defaultAppServicePlanName'), 'createNewAppServicePlan'))]",
         "servicePlanName": "[if(variables('useExistingAppServicePlan'), parameters('existingAppServicePlan'), parameters('newAppServicePlanName'))]",
         "resourcesLocation": "[parameters('appServicePlanLocation')]",
+        "location": "[parameters('appServicePlanLocation')]",
         "webAppName": "[if(empty(parameters('newWebAppName')), parameters('botId'), parameters('newWebAppName'))]",
+        "functionAppPlanName": "[concat(parameters('functionAppName'), 'Plan')]",
         "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
-        "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]"
+        "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]",
+        "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]",
+        "storageAccountApiVersion": "2019-06-01"
     },
     "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "location": "[variables('location')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "kind": "StorageV2",
+            "properties": {}
+        },
         {
             "comments": "Create a new App Service Plan if no existing App Service Plan name was passed in.",
             "type": "Microsoft.Web/serverfarms",
@@ -113,6 +136,10 @@
                         {
                             "name": "MicrosoftAppPassword",
                             "value": "[parameters('appSecret')]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), variables('storageAccountApiVersion')).keys[0].value)]"
                         }
                     ],
                     "cors": {
@@ -147,6 +174,50 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
             ]
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "kind": "",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('functionAppPlanName')]",
+            "properties": {
+                "name": "[variables('functionAppPlanName')]"
+            },
+            "sku": {
+                "Tier": "Dynamic",
+                "Name": "Y1"
+            },
+            "type": "Microsoft.Web/serverfarms"
+        },
+        {
+            "name": "[parameters('functionAppName')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), variables('storageAccountApiVersion')).keys[0].value)]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "dotnet"
+                        }
+                    ]
+                }
+            }
         }
     ]
 }

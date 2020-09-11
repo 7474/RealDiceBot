@@ -5,6 +5,8 @@ on:
 env:
   AZURE_WEBAPP_NAME: RealDiceBot
   AZURE_WEBAPP_PACKAGE_PATH: './RealDiceBot'
+  AZURE_FUNCTIONAPP_NAME: RealDiceBotFunctions
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './RealDiceFunctions'
   DOTNET_VERSION: '3.1'
 
 jobs:
@@ -16,13 +18,19 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }} 
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: dotnet build and publish
+    - name: Build solution and publish projects
+      shell: pwsh
       run: |
         dotnet restore
         dotnet build --configuration Release
-        dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' 
+        pushd './${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        dotnet publish -c Release -o './myapp'
+        popd
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
 
     - name: Login to Azure
       uses: azure/login@v1
@@ -38,18 +46,25 @@ jobs:
           --no-prompt
           --mode Complete
           --resource-group "dicebot"
-          --template-file "./RealDiceBot/DeploymentTemplates/template-with-preexisting-rg.json"
-          --parameters 
-          appId="a35637a9-0577-42ee-893e-95f26f885e8d" 
-          appSecret="${{ secrets.REAL_DICE_BOT_SECRET }}" 
-          botId="RealDiceBot" 
-          newWebAppName="RealDiceBot" 
-          newAppServicePlanName="RealDiceBotPlan" 
-          appServicePlanLocation="Japan East" 
-          --name "RealDiceBot"
+          --template-file "./DeploymentTemplates/template-with-preexisting-rg.json"
+          --parameters
+          appId="a35637a9-0577-42ee-893e-95f26f885e8d"
+          appSecret="${{ secrets.REAL_DICE_BOT_SECRET }}"
+          botId="${{ env.AZURE_WEBAPP_NAME }}"
+          newWebAppName="${{ env.AZURE_WEBAPP_NAME }}"
+          newAppServicePlanName="${{ env.AZURE_WEBAPP_NAME }}Plan"
+          appServicePlanLocation="Japan East"
+          functionAppName="${{ env.AZURE_FUNCTIONAPP_NAME }}"
+          --name "${{ env.AZURE_WEBAPP_NAME }}"
 
-    - name: 'Run Azure webapp deploy action using azure/login@v1 credentials'
+    - name: 'Run Azure webapp deploy action'
       uses: azure/webapps-deploy@v2
-      with: 
+      with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'       
+        package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
+
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'

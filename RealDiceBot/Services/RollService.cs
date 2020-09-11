@@ -17,7 +17,7 @@ namespace RealDiceBot.Services
         public RollService(IConfiguration config)
         {
             var queueName = config["RollRequestQueueName"];
-            var connectionString = config["QueueStorageConnection"];
+            var connectionString = config["AzureWebJobsStorage"];
 
             requestQueueClient = new QueueClient(connectionString, queueName);
         }

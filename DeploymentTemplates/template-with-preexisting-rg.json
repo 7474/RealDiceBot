@@ -171,25 +171,6 @@
                 "publishingCredentials": null,
                 "storageResourceId": null
             },
-            "resources": [
-                {
-                    "name": "DirectLineChannel",
-                    "type": "channels",
-                    "apiVersion": "2018-07-12",
-                    "location": "global",
-                    "tags": {},
-                    "sku": {
-                        "name": "[parameters('botSku')]"
-                    },
-                    "kind": "string",
-                    "properties": {
-                        "channelName": "DirectLineFromFunctions"
-                    },
-                    "dependsOn": [
-                        "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]"
-                    ]
-                }
-            ],
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
             ]
@@ -216,7 +197,8 @@
             "kind": "functionapp",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]"
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",

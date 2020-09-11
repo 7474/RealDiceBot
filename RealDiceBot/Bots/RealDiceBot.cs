@@ -8,18 +8,36 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using RealDiceBot.Services;
+using RealDiceCommon.Models.Roll;
+using RealDiceCommon.Utils;
 
 namespace RealDiceBot.Bots
 {
     public class RealDiceBot : ActivityHandler
     {
-        private Random randomizer = new Random();
+        private readonly string _botId;
+        private readonly ILogger<RealDiceBot> logger;
+        private readonly IRollService rollService;
+
+        public RealDiceBot(IConfiguration configuration, IRollService rollService, ILoggerFactory logger)
+        {
+            _botId = configuration["MicrosoftAppId"] ?? Guid.NewGuid().ToString();
+            this.logger = logger.CreateLogger<RealDiceBot>();
+            this.rollService = rollService;
+        }
 
         protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
         {
-            var result = randomizer.Next(1, 7);
-            var replyText = $"1d6 = {result} !";
+            var rollRequest = RollRequest.Real1D6;
+            await rollService.RequestAsync(turnContext.Activity, rollRequest);
+
+            var replyText = $"1d6? Wait a minute!";
             await turnContext.SendActivityAsync(MessageFactory.Text(replyText, replyText), cancellationToken);
         }
 
@@ -34,6 +52,28 @@ namespace RealDiceBot.Bots
                 {
                     await turnContext.SendActivityAsync(MessageFactory.Text(welcomeText, welcomeText), cancellationToken);
                 }
+            }
+        }
+
+        protected override async Task OnEventActivityAsync(ITurnContext<IEventActivity> turnContext, CancellationToken cancellationToken)
+        {
+            if (turnContext.Activity.ChannelId == Channels.Directline && turnContext.Activity.Name == "RollResult")
+            {
+                var continueConversationActivity = (turnContext.Activity.Value as JObject)?.ToObject<Activity>();
+                await turnContext.Adapter.ContinueConversationAsync(_botId, continueConversationActivity.GetConversationReference(), async (context, cancellation) =>
+                {
+                    logger.LogInformation(continueConversationActivity.Value as string);
+                    var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
+                    var message = 
+                        $"1d6 = {res.Results[0].Results[0]} !\n" +
+                        $"> {continueConversationActivity.Text}";
+
+                    await context.SendActivityAsync(message);
+                }, cancellationToken);
+            }
+            else
+            {
+                await base.OnEventActivityAsync(turnContext, cancellationToken);
             }
         }
     }

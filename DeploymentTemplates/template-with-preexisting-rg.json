@@ -171,6 +171,25 @@
                 "publishingCredentials": null,
                 "storageResourceId": null
             },
+            "resources": [
+                {
+                    "name": "DirectLineChannel",
+                    "type": "channels",
+                    "apiVersion": "2018-07-12",
+                    "location": "global",
+                    "tags": {},
+                    "sku": {
+                        "name": "[parameters('botSku')]"
+                    },
+                    "kind": "string",
+                    "properties": {
+                        "channelName": "DirectLineFromFunctions"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]"
+                    ]
+                }
+            ],
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
             ]
@@ -206,6 +225,10 @@
                         {
                             "name": "AzureWebJobsStorage",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), variables('storageAccountApiVersion')).keys[0].value)]"
+                        },
+                        {
+                            "name": "DirectLineSecret",
+                            "value": "[listChannelWithKeys(resourceId('Microsoft.BotService/botServices/channels', parameters('botId'), 'DirectLineChannel'), '2018-07-12').properties.properties.sites[0].key]"
                         },
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",

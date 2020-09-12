@@ -56,6 +56,9 @@ namespace RealDiceBot
                     endpoints.MapControllers();
                 });
 
+            // Allow the bot to use named pipes.
+            app.UseNamedPipes(System.Environment.GetEnvironmentVariable("APPSETTING_WEBSITE_SITE_NAME") + ".directline");
+
             // app.UseHttpsRedirection();
         }
     }

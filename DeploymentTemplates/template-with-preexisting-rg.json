@@ -71,6 +71,10 @@
         "storageAccountType": {
             "type": "string",
             "defaultValue": "Standard_LRS"
+        },
+        "directLineExtensionKey": {
+            "type": "string",
+            "defaultValue": ""
         }
     },
     "variables": {
@@ -126,10 +130,6 @@
                 "siteConfig": {
                     "appSettings": [
                         {
-                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                            "value": "10.14.1"
-                        },
-                        {
                             "name": "MicrosoftAppId",
                             "value": "[parameters('appId')]"
                         },
@@ -140,6 +140,14 @@
                         {
                             "name": "AzureWebJobsStorage",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), variables('storageAccountApiVersion')).keys[0].value)]"
+                        },
+                        {
+                            "name": "DirectLineExtensionKey",
+                            "value": "[parameters('directLineExtensionKey')]"
+                        },
+                        {
+                            "name": "DIRECTLINE_EXTENSION_VERSION",
+                            "value": "latest"
                         }
                     ],
                     "cors": {

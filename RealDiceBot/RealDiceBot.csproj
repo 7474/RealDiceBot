@@ -5,6 +5,14 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+        https://docs.microsoft.com/ja-jp/azure/bot-service/bot-service-channel-directline-extension-net-bot?view=azure-bot-service-4.0#troubleshooting
+        https://docs.microsoft.com/ja-jp/aspnet/core/host-and-deploy/aspnet-core-module?view=aspnetcore-3.1#out-of-process-hosting-model
+    -->
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Queues" Version="12.4.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.8" />
@@ -20,5 +28,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

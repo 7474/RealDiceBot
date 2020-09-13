@@ -55,6 +55,7 @@ jobs:
           newAppServicePlanName="${{ env.AZURE_WEBAPP_NAME }}Plan"
           appServicePlanLocation="Japan East"
           functionAppName="${{ env.AZURE_FUNCTIONAPP_NAME }}"
+          directLineExtensionKey="${{ secrets.DIRECT_LINE_EXTENSION_KEY }}"
           --name "${{ env.AZURE_WEBAPP_NAME }}"
 
     - name: 'Run Azure webapp deploy action'

@@ -11,18 +11,22 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RealDiceBot.Models.Options;
 using RealDiceBot.Services;
+using TwitterBotFWIntegration;
 
 namespace RealDiceBot
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            Env = env;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Env { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -36,6 +40,18 @@ namespace RealDiceBot
             services.AddTransient<IBot, Bots.RealDiceBot>();
 
             services.AddSingleton<IRollService, RollService>();
+
+            // 正直どこで動かすのか考えあぐねているが、
+            // 今後Steam処理やWebhookでのコールバックを主にしていく場合Functionsではなく、
+            // かつWebのエンドポイントを設けることになるのでServiceはDIコンテナに入れることになるだろう。
+            // しかし、Bot Frameworkのストリームは会話ID毎なので、スケールするには会話ID毎に責務分けする必要がある。
+            // それを自前実装しなくてはならない（多分）とか、独自のチャンネルとDirectLineさせる気はあるんだろうか。
+            var twitterBotIntegrationManager = CreateTwitterBotIntegrationManager(Configuration);
+            services.AddSingleton(twitterBotIntegrationManager);
+            if (Env.IsDevelopment())
+            {
+                twitterBotIntegrationManager.Start();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,6 +78,21 @@ namespace RealDiceBot
 
             // Allow the bot to use named pipes.
             app.UseNamedPipes(System.Environment.GetEnvironmentVariable("APPSETTING_WEBSITE_SITE_NAME") + ".directline");
+        }
+
+        private TwitterBotIntegrationManager CreateTwitterBotIntegrationManager(IConfiguration configuration)
+        {
+            var directLineSecret = Configuration["DirectLineSecret"];
+            var twitterOptions = new TwitterOptions();
+            Configuration.GetSection("Twitter").Bind(twitterOptions);
+
+            return new TwitterBotIntegrationManager(
+                directLineSecret,
+                twitterOptions.ConsumerKey,
+                twitterOptions.ConsumerSecret,
+                twitterOptions.BearerToken,
+                twitterOptions.AccessToken,
+                twitterOptions.AccessTokenSecret);
         }
     }
 }

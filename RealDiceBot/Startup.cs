@@ -48,7 +48,7 @@ namespace RealDiceBot
             // それを自前実装しなくてはならない（多分）とか、独自のチャンネルとDirectLineさせる気はあるんだろうか。
             var twitterBotIntegrationManager = CreateTwitterBotIntegrationManager(Configuration);
             services.AddSingleton(twitterBotIntegrationManager);
-            if (Env.IsDevelopment())
+            if (!Env.IsDevelopment())
             {
                 twitterBotIntegrationManager.Start();
             }

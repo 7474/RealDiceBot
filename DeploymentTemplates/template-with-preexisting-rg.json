@@ -76,6 +76,10 @@
             "type": "string",
             "defaultValue": ""
         },
+        "directLineSecret": {
+            "type": "string",
+            "defaultValue": ""
+        },
         "twitterConsumerKey": {
             "type": "string",
             "defaultValue": ""
@@ -168,7 +172,7 @@
                         {
                             // TODO Site毎にSecretを管理する
                             "name": "DirectLineSecret",
-                            "value": "[listChannelWithKeys(resourceId('Microsoft.BotService/botServices/channels', parameters('botId'), 'DirectLineChannel'), '2018-07-12').properties.properties.sites[0].key]"
+                            "value": "[parameters('directLineSecret')]"
                         },
                         {
                             "name": "Twitter__ConsumerKey",

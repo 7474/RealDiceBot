@@ -57,6 +57,7 @@ jobs:
           appServicePlanLocation="Japan East"
           functionAppName="${{ env.AZURE_FUNCTIONAPP_NAME }}"
           directLineExtensionKey="${{ secrets.DIRECT_LINE_EXTENSION_KEY }}"
+          directLineSecret="${{ secrets.directLineSecret }}"
           twitterConsumerKey="${{ secrets.twitterConsumerKey }}"
           twitterConsumerSecret="${{ secrets.twitterConsumerSecret }}"
           twitterAccessToken="${{ secrets.twitterAccessToken }}"

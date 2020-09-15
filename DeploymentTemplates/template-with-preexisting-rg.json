@@ -170,7 +170,6 @@
                             "value": "latest"
                         },
                         {
-                            // TODO Site毎にSecretを管理する
                             "name": "DirectLineSecret",
                             "value": "[parameters('directLineSecret')]"
                         },

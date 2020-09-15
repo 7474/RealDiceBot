@@ -75,6 +75,22 @@
         "directLineExtensionKey": {
             "type": "string",
             "defaultValue": ""
+        },
+        "twitterConsumerKey": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "twitterConsumerSecret": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "twitterAccessToken": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "twitterAccessTokenSecret": {
+            "type": "string",
+            "defaultValue": ""
         }
     },
     "variables": {
@@ -148,6 +164,31 @@
                         {
                             "name": "DIRECTLINE_EXTENSION_VERSION",
                             "value": "latest"
+                        },
+                        {
+                            // TODO Site毎にSecretを管理する
+                            "name": "DirectLineSecret",
+                            "value": "[listChannelWithKeys(resourceId('Microsoft.BotService/botServices/channels', parameters('botId'), 'DirectLineChannel'), '2018-07-12').properties.properties.sites[0].key]"
+                        },
+                        {
+                            "name": "Twitter__ConsumerKey",
+                            "value": "[parameters('twitterConsumerKey')]"
+                        },
+                        {
+                            "name": "Twitter__ConsumerSecret",
+                            "value": "[parameters('twitterConsumerSecret')]"
+                        },
+                        {
+                            "name": "Twitter__BearerToken",
+                            "value": ""
+                        },
+                        {
+                            "name": "Twitter__AccessToken",
+                            "value": "[parameters('twitterAccessToken')]"
+                        },
+                        {
+                            "name": "Twitter__AccessTokenSecret",
+                            "value": "[parameters('twitterAccessTokenSecret')]"
                         }
                     ],
                     "cors": {

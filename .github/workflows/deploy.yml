@@ -49,6 +49,7 @@ jobs:
           --resource-group "dicebot"
           --template-file "./DeploymentTemplates/template-with-preexisting-rg.json"
           --parameters
+          baseUrl="https://realdicebot.azurewebsites.net/"
           appId="a35637a9-0577-42ee-893e-95f26f885e8d"
           appSecret="${{ secrets.REAL_DICE_BOT_SECRET }}"
           botId="${{ env.AZURE_WEBAPP_NAME }}"

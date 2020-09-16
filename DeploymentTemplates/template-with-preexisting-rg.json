@@ -95,6 +95,10 @@
         "twitterAccessTokenSecret": {
             "type": "string",
             "defaultValue": ""
+        },
+        "baseUrl": {
+            "type": "string",
+            "defaultValue": ""
         }
     },
     "variables": {
@@ -149,6 +153,10 @@
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
                 "siteConfig": {
                     "appSettings": [
+                        {
+                            "name": "BaseUrl",
+                            "value": "[parameters('baseUrl')]"
+                        },
                         {
                             "name": "MicrosoftAppId",
                             "value": "[parameters('appId')]"

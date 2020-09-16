@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
@@ -13,6 +14,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using RealDiceBot.Models;
 using RealDiceBot.Services;
 using RealDiceCommon.Models.Roll;
 using RealDiceCommon.Utils;
@@ -24,12 +26,18 @@ namespace RealDiceBot.Bots
         private readonly string _botId;
         private readonly ILogger<RealDiceBot> logger;
         private readonly IRollService rollService;
+        private readonly StaticAssets staticAssets;
 
-        public RealDiceBot(IConfiguration configuration, IRollService rollService, ILoggerFactory logger)
+        public RealDiceBot(
+            IConfiguration configuration,
+            IRollService rollService,
+            StaticAssets staticAssets,
+            ILoggerFactory logger)
         {
             _botId = configuration["MicrosoftAppId"] ?? Guid.NewGuid().ToString();
             this.logger = logger.CreateLogger<RealDiceBot>();
             this.rollService = rollService;
+            this.staticAssets = staticAssets;
         }
 
         protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
@@ -55,6 +63,19 @@ namespace RealDiceBot.Bots
             }
         }
 
+        private IList<Attachment> GetAttachments(RollResult res)
+        {
+            return res.Results
+                .Select(x => $"{x}.jpg")
+                .Select(x => staticAssets.Files[x])
+                .Select(x => new Attachment
+                {
+                    Name = x.Name,
+                    ContentType = x.ContentType,
+                    ContentUrl = x.Url,
+                }).ToList();
+        }
+
         protected override async Task OnEventActivityAsync(ITurnContext<IEventActivity> turnContext, CancellationToken cancellationToken)
         {
             if (turnContext.Activity.ChannelId == Channels.Directline && turnContext.Activity.Name == "RollResult")
@@ -64,11 +85,14 @@ namespace RealDiceBot.Bots
                 {
                     logger.LogInformation(continueConversationActivity.Value as string);
                     var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
-                    var message = 
+                    var message =
                         $"1d6 = {res.Results[0].Results[0]} !\n" +
                         $"> {continueConversationActivity.Text}";
 
-                    await context.SendActivityAsync(message);
+                    var activity = MessageFactory.Text(message);
+                    activity.Attachments = GetAttachments(res.Results[0]);
+
+                    await context.SendActivityAsync(activity);
                 }, cancellationToken);
             }
             else

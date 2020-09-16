@@ -11,8 +11,13 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RealDiceBot.Models;
 using RealDiceBot.Models.Options;
 using RealDiceBot.Services;
+using System;
+using System.IO;
+using System.Linq;
+using System.Security.Policy;
 using TwitterBotFWIntegration;
 
 namespace RealDiceBot
@@ -52,6 +57,19 @@ namespace RealDiceBot
             {
                 twitterBotIntegrationManager.Start();
             }
+
+            //var basePath = Env.ContentRootPath;
+            var baseUrl = new Uri(Configuration["BaseUrl"]);
+            var diceFiles = new string[] { "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", }
+                .Select(x => Path.Combine("images", "dice", x))
+                .Select(x => new StaticAssetFile
+                {
+                    ContentType = "image/jpeg",
+                    Path = x,
+                    Url = new Uri(baseUrl, x).ToString(),
+                })
+                .ToList();
+            services.AddSingleton(new StaticAssets(diceFiles));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

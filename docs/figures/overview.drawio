@@ -1,0 +1,214 @@
+<mxfile host="f6a5cd47-b1b7-47ae-8add-c74580a0c80a" modified="2020-09-17T13:41:48.802Z" agent="5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.48.0 Chrome/78.0.3904.130 Electron/7.3.2 Safari/537.36" etag="ZAuPXEgrBbUrKKfqWAt4" version="13.1.3">
+    <diagram id="6hGFLwfOUW9BJ-s0fimq" name="Page-1">
+        <mxGraphModel dx="1135" dy="449" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="55" value="" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="30" width="640" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="852.5" y="30" width="297.5" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.azure_website;pointerEvents=1;" vertex="1" parent="1">
+                    <mxGeometry x="444" y="318.5" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/Functions.svg;" vertex="1" parent="1">
+                    <mxGeometry x="642.5" y="164" width="50" height="46" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/Bot_Services.svg;" vertex="1" parent="1">
+                    <mxGeometry x="364" y="162" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.weblogos.twitter;fillColor=#1DA1F2;strokeColor=none" vertex="1" parent="1">
+                    <mxGeometry x="80" y="80" width="80" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/Azure_IoT_Hub.svg;" vertex="1" parent="1">
+                    <mxGeometry x="767.5" y="164" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.storage_queue;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="243.75" width="50" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.mobile;pointerEvents=1;" vertex="1" parent="1">
+                    <mxGeometry x="10" y="160" width="35" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=data:image/svg+xml,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDI3MCAyNzAiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI3MCAyNzA7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4mI3hhOzxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+JiN4YTsJLnN0MHtmaWxsOiNFMDFFNUE7fSYjeGE7CS5zdDF7ZmlsbDojMzZDNUYwO30mI3hhOwkuc3Qye2ZpbGw6IzJFQjY3RDt9JiN4YTsJLnN0M3tmaWxsOiNFQ0IyMkU7fSYjeGE7PC9zdHlsZT4mI3hhOzxnPiYjeGE7CTxnPiYjeGE7CQk8cGF0aCBjbGFzcz0ic3QwIiBkPSJNOTkuNCwxNTEuMmMwLDcuMS01LjgsMTIuOS0xMi45LDEyLjljLTcuMSwwLTEyLjktNS44LTEyLjktMTIuOWMwLTcuMSw1LjgtMTIuOSwxMi45LTEyLjloMTIuOVYxNTEuMnoiLz4mI3hhOwkJPHBhdGggY2xhc3M9InN0MCIgZD0iTTEwNS45LDE1MS4yYzAtNy4xLDUuOC0xMi45LDEyLjktMTIuOXMxMi45LDUuOCwxMi45LDEyLjl2MzIuM2MwLDcuMS01LjgsMTIuOS0xMi45LDEyLjkgICAgcy0xMi45LTUuOC0xMi45LTEyLjlWMTUxLjJ6Ii8+JiN4YTsJPC9nPiYjeGE7CTxnPiYjeGE7CQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTE4LjgsOTkuNGMtNy4xLDAtMTIuOS01LjgtMTIuOS0xMi45YzAtNy4xLDUuOC0xMi45LDEyLjktMTIuOXMxMi45LDUuOCwxMi45LDEyLjl2MTIuOUgxMTguOHoiLz4mI3hhOwkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTExOC44LDEwNS45YzcuMSwwLDEyLjksNS44LDEyLjksMTIuOXMtNS44LDEyLjktMTIuOSwxMi45SDg2LjVjLTcuMSwwLTEyLjktNS44LTEyLjktMTIuOSAgICBzNS44LTEyLjksMTIuOS0xMi45SDExOC44eiIvPiYjeGE7CTwvZz4mI3hhOwk8Zz4mI3hhOwkJPHBhdGggY2xhc3M9InN0MiIgZD0iTTE3MC42LDExOC44YzAtNy4xLDUuOC0xMi45LDEyLjktMTIuOWM3LjEsMCwxMi45LDUuOCwxMi45LDEyLjlzLTUuOCwxMi45LTEyLjksMTIuOWgtMTIuOVYxMTguOHoiLz4mI3hhOwkJPHBhdGggY2xhc3M9InN0MiIgZD0iTTE2NC4xLDExOC44YzAsNy4xLTUuOCwxMi45LTEyLjksMTIuOWMtNy4xLDAtMTIuOS01LjgtMTIuOS0xMi45Vjg2LjVjMC03LjEsNS44LTEyLjksMTIuOS0xMi45ICAgIGM3LjEsMCwxMi45LDUuOCwxMi45LDEyLjlWMTE4Ljh6Ii8+JiN4YTsJPC9nPiYjeGE7CTxnPiYjeGE7CQk8cGF0aCBjbGFzcz0ic3QzIiBkPSJNMTUxLjIsMTcwLjZjNy4xLDAsMTIuOSw1LjgsMTIuOSwxMi45YzAsNy4xLTUuOCwxMi45LTEyLjksMTIuOWMtNy4xLDAtMTIuOS01LjgtMTIuOS0xMi45di0xMi45SDE1MS4yeiIvPiYjeGE7CQk8cGF0aCBjbGFzcz0ic3QzIiBkPSJNMTUxLjIsMTY0LjFjLTcuMSwwLTEyLjktNS44LTEyLjktMTIuOWMwLTcuMSw1LjgtMTIuOSwxMi45LTEyLjloMzIuM2M3LjEsMCwxMi45LDUuOCwxMi45LDEyLjkgICAgYzAsNy4xLTUuOCwxMi45LTEyLjksMTIuOUgxNTEuMnoiLz4mI3hhOwk8L2c+JiN4YTs8L2c+JiN4YTs8L3N2Zz4=;" vertex="1" parent="1">
+                    <mxGeometry x="35" y="380" width="150" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="3" target="4">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="720" y="194" as="sourcePoint"/>
+                        <mxPoint x="510" y="180" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="7" target="3">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="410" y="230" as="sourcePoint"/>
+                        <mxPoint x="670" y="160" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="" style="endArrow=classic;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1.02;exitY=0.09;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="2" target="7">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="500" y="305" as="sourcePoint"/>
+                        <mxPoint x="514" y="305" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="8" target="9">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="210" y="170" as="sourcePoint"/>
+                        <mxPoint x="260" y="120" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="8" target="5">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="170" y="330" as="sourcePoint"/>
+                        <mxPoint x="110" y="280" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=0.125;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="9" target="37">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="270" y="360" as="sourcePoint"/>
+                        <mxPoint x="330" y="300" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=-0.04;entryY=0.46;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="3" target="6">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="682.5" y="327.5" as="sourcePoint"/>
+                        <mxPoint x="742.5" y="257.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="" style="endArrow=classic;html=1;entryX=0.02;entryY=0.12;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.763;exitY=1.1;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="37" target="2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="490" y="230" as="sourcePoint"/>
+                        <mxPoint x="340" y="330" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="メッセージキュー" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="295.25" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="App Service&lt;br&gt;ボット本体" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="372.5" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="Functions&lt;br&gt;非同期処理全般" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="640" y="230" width="110" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="IoT Hub" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" vertex="1" parent="1">
+                    <mxGeometry x="757.5" y="220" width="60" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="&lt;!--StartFragment--&gt;&lt;img src=&quot;https://www.raspberrypi.org/wp-content/uploads/2011/10/Raspi-PGB001-300x267.png&quot;&gt;&lt;!--EndFragment--&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="882.5" y="150" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="&lt;!--StartFragment--&gt;&lt;img src=&quot;https://dev.botframework.com/client/images/channels/icons/directline.png&quot; alt=&quot;Direct Line&quot;&gt;&lt;!--EndFragment--&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="268" y="40" width="70" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.azure_website;pointerEvents=1;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="92.5" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Direct Line&lt;br&gt;+&lt;br&gt;Twitterとの&lt;br&gt;接続アプリケーション" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="204" y="164" width="146" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="5" target="29">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="150" y="410" as="sourcePoint"/>
+                        <mxPoint x="200" y="360" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="34" value="" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="28" target="4">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="540" y="130" as="sourcePoint"/>
+                        <mxPoint x="355.25" y="20" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="35" value="&lt;font face=&quot;helvetica&quot;&gt;Slackのブランドアイコン、やたら余白が大きい。&lt;br&gt;Webチャット以外の公式なチャンネルとの疎通に使う。&lt;br&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;rotation=0;" vertex="1" parent="1">
+                    <mxGeometry x="185" y="455" width="205" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Bot Service" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="212" width="80" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="Raspberry Pi&lt;br&gt;IoT Edge" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="872.5" y="230" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" target="27">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="822.5" y="191" as="sourcePoint"/>
+                        <mxPoint x="775.5" y="197" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="41" value="Raspberry Pi&lt;br&gt;電動ダイスのOn/Of、転がしている様子の録画、出目の撮影、出目の判断を行う。&lt;br&gt;動画や画像を扱うとは言え大した解像度を必要としないのでZeroで行けるのでは？　と考えていたが、IoT EdgeがCPUバージョンの兼ね合いで対応していなかったので3にした。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="860" y="32.5" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="&lt;!--StartFragment--&gt;&lt;img src=&quot;https://pbs.twimg.com/media/EiHk5zDU4AEjGaG?format=jpg&amp;amp;name=small&quot; alt=&quot;Image&quot;&gt;&lt;!--EndFragment--&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="872.5" y="280" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.camera;" vertex="1" parent="1">
+                    <mxGeometry x="990" y="216.25" width="40" height="27.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="" style="endArrow=classic;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="27" target="43">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1182.5" y="280" as="sourcePoint"/>
+                        <mxPoint x="1002.5" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="45" value="" style="endArrow=classic;html=1;exitX=0.075;exitY=0.982;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="43" target="42">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1227.5" y="250" as="sourcePoint"/>
+                        <mxPoint x="992.5" y="287.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="46" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="38" target="42">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="928.5" y="270" as="sourcePoint"/>
+                        <mxPoint x="1052.5" y="190" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="カメラ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="990" y="243.75" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="電動ダイス" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="877.5" y="392.5" width="90" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.cloud;" vertex="1" parent="1">
+                    <mxGeometry x="777" y="40" width="50" height="32.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="" style="points=[[0.115,0.05,0],[0.335,0,0],[0.98,0.52,0],[1,0.71,0],[0.68,1,0],[0.065,0.76,0],[0,0.33,0],[0.68,0.33,0]];verticalLabelPosition=bottom;html=1;verticalAlign=top;aspect=fixed;align=center;pointerEvents=1;shape=mxgraph.cisco19.home_office;fillColor=#005073;strokeColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1090" y="354" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.storage_blob;" vertex="1" parent="1">
+                    <mxGeometry x="717.5" y="318.5" width="50" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="Storage Blog&lt;br&gt;ファイル置き場" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="692.5" y="369.5" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="" style="endArrow=classic;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="27" target="59">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="750" y="490" as="sourcePoint"/>
+                        <mxPoint x="800" y="440" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="62" value="" style="endArrow=classic;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="59" target="2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="570" y="490" as="sourcePoint"/>
+                        <mxPoint x="620" y="440" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="63" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/Cognitive_Services.svg;" vertex="1" parent="1">
+                    <mxGeometry x="707.5" y="80" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="" style="endArrow=classic;html=1;exitX=1.08;exitY=0.6;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="63" target="27">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="670" y="490" as="sourcePoint"/>
+                        <mxPoint x="720" y="440" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="65" value="Custom Vision&lt;br&gt;出目の認識モデル" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="667.5" y="122.5" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="&lt;font face=&quot;helvetica&quot;&gt;ユーザー（僕）はスマホを使ってTwitterなどのサービスでダイスボットとやり取りする。&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;rotation=0;" vertex="1" parent="1">
+                    <mxGeometry x="10" y="18.75" width="150" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="&lt;div&gt;&lt;font face=&quot;helvetica&quot;&gt;TwitterはBot ServiceにチャンネルがないのでDirect Lineを介して接続する。&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font face=&quot;helvetica&quot;&gt;今回は面倒くさいので接続アプリケーションはボット本体と同居させている。&lt;/font&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;rotation=0;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="40" width="260" height="75" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

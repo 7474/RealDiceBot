@@ -116,6 +116,27 @@
     },
     "resources": [
         {
+            "apiVersion": "2018-05-01-preview",
+            "name": "[variables('webAppName')]",
+            "type": "microsoft.insights/components",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[variables('webAppName')]"
+            }
+        },
+        {
+            "apiVersion": "2018-05-01-preview",
+            "name": "[parameters('functionAppName')]",
+            "type": "microsoft.insights/components",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[parameters('functionAppName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
             "location": "[variables('location')]",
@@ -145,7 +166,8 @@
             "location": "[variables('resourcesLocation')]",
             "kind": "app",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
+                "[resourceId('microsoft.insights/components', variables('webAppName'))]"
             ],
             "name": "[variables('webAppName')]",
             "properties": {
@@ -200,6 +222,14 @@
                         {
                             "name": "Twitter__AccessTokenSecret",
                             "value": "[parameters('twitterAccessTokenSecret')]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
+                        },
+                        {
+                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+                            "value": "~2"
                         }
                     ],
                     "cors": {
@@ -258,7 +288,8 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]"
+                "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]",
+                "[resourceId('microsoft.insights/components', parameters('functionAppName'))]"
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
@@ -279,6 +310,10 @@
                         {
                             "name": "FUNCTIONS_WORKER_RUNTIME",
                             "value": "dotnet"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components', parameters('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
                         }
                     ]
                 }

@@ -269,7 +269,8 @@
                 "developerAppInsightsApplicationId": "[concat(variables('webAppName'),'Bot')]",
                 "developerAppInsightKey": "[reference(resourceId('microsoft.insights/components', concat(variables('webAppName'),'Bot')), '2018-05-01-preview').InstrumentationKey]",
                 "publishingCredentials": null,
-                "storageResourceId": null
+                "storageResourceId": null,
+                "iconUrl": "[concat(parameters('baseUrl'), 'images/icon_400x400.png')]"
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"

@@ -54,7 +54,7 @@ namespace RealDiceBot
             var twitterBotIntegrationManager = CreateTwitterBotIntegrationManager(Configuration);
             services.AddSingleton(twitterBotIntegrationManager);
             if (!Env.IsDevelopment())
-            {
+                {
                 twitterBotIntegrationManager.Start();
             }
 
@@ -70,6 +70,7 @@ namespace RealDiceBot
                 })
                 .ToList();
             services.AddSingleton(new StaticAssets(diceFiles));
+            services.AddApplicationInsightsTelemetry();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

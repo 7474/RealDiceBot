@@ -49,19 +49,20 @@ namespace RealDiceBot.Bots
             await turnContext.SendActivityAsync(MessageFactory.Text(replyText, replyText), cancellationToken);
         }
 
-        protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
-        {
-            var welcomeText = "Hello. I'm Real DiceBot. " +
-                "I can roll 1d6 Only! " +
-                "Unfortunately it's not \"real\" now.";
-            foreach (var member in membersAdded)
-            {
-                if (member.Id != turnContext.Activity.Recipient.Id)
-                {
-                    await turnContext.SendActivityAsync(MessageFactory.Text(welcomeText, welcomeText), cancellationToken);
-                }
-            }
-        }
+        // XXX さしあたってウェルカムメッセージ要らん気がする。
+        //protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
+        //{
+        //    var welcomeText = "Hello. I'm Real DiceBot. " +
+        //        "I can roll 1d6 Only! " +
+        //        "Unfortunately it's not \"real\" now.";
+        //    foreach (var member in membersAdded)
+        //    {
+        //        if (member.Id != turnContext.Activity.Recipient.Id)
+        //        {
+        //            await turnContext.SendActivityAsync(MessageFactory.Text(welcomeText, welcomeText), cancellationToken);
+        //        }
+        //    }
+        //}
 
         private IList<Attachment> GetAttachments(RollResult res)
         {
@@ -92,7 +93,7 @@ namespace RealDiceBot.Bots
                     var activity = MessageFactory.Text(message);
                     activity.Attachments = GetAttachments(res.Results[0]);
 
-                    await context.SendActivityAsync(activity);
+                    await context.SendActivityAsync(activity, cancellationToken);
                 }, cancellationToken);
             }
             else

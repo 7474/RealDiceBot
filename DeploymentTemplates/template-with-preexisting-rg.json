@@ -137,6 +137,16 @@
             }
         },
         {
+            "apiVersion": "2018-05-01-preview",
+            "name": "[concat(variables('webAppName'),'Bot')]",
+            "type": "microsoft.insights/components",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[concat(variables('webAppName'),'Bot')]"
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
             "location": "[variables('location')]",
@@ -256,8 +266,8 @@
                 "displayName": "[parameters('botId')]",
                 "endpoint": "[variables('botEndpoint')]",
                 "msaAppId": "[parameters('appId')]",
-                "developerAppInsightsApplicationId": null,
-                "developerAppInsightKey": null,
+                "developerAppInsightsApplicationId": "[concat(variables('webAppName'),'Bot')]",
+                "developerAppInsightKey": "[reference(resourceId('microsoft.insights/components', concat(variables('webAppName'),'Bot')), '2018-05-01-preview').InstrumentationKey]",
                 "publishingCredentials": null,
                 "storageResourceId": null
             },

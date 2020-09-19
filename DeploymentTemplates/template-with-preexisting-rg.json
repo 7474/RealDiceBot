@@ -234,6 +234,12 @@
                             "value": "[parameters('twitterAccessTokenSecret')]"
                         },
                         {
+                            // For Bot Framework
+                            // https://docs.microsoft.com/ja-jp/azure/bot-service/bot-builder-telemetry?view=azure-bot-service-4.0&tabs=csharp
+                            "name": "ApplicationInsights__InstrumentationKey",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
+                        },
+                        {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                             "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
                         },

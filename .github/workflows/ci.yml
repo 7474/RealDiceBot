@@ -22,11 +22,12 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    # https://github.com/marketplace/actions/azure-cli-action
     - name: Validate ARM Template
       uses: azure/CLI@v1
       with:
         inlineScript: >
-          az deployment group validate
+          az deployment group what-if
           --no-prompt
           --mode Complete
           --resource-group "dicebot"

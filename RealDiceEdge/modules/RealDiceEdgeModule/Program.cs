@@ -60,20 +60,30 @@ namespace RealDiceEdgeModule
 
         static async Task<MethodResponse> Roll(MethodRequest methodRequest, object userContext)
         {
+            RollInternal(methodRequest, userContext).Start();
+
+            return await Task.FromResult(
+                new MethodResponse(202)
+            );
+        }
+
+        static async Task RollInternal(MethodRequest methodRequest, object userContext)
+        {
+            // XXX ログどうすんの？
+            Console.WriteLine($"RollInternal {methodRequest.DataAsJson}");
+
             var moduleClient = userContext as ModuleClient;
-            
-            // XXX ここで処理完了まで処理するとFunctionsの待ち時間が剥げる。
+
             var rollResult = randomizer.Next(1, 6);
-            // XXX リクエストから取る
+            // TODO リクエストから取る
             var id = Guid.NewGuid().ToString();
+            // TODO 実装する
             var result = "{" +
                 "\"result\":" + rollResult + "," +
                 "\"photoName\":\"" + id + ".jpg" + "\"," +
                 "\"videoName\":\"" + id + ".mp4" + "\"" +
                 "}";
-            return await Task.FromResult(
-                new MethodResponse(Encoding.UTF8.GetBytes(result), 200)
-            );
+            await moduleClient.SendEventAsync("RollResult", new Message(Encoding.UTF8.GetBytes(result)));
         }
 
         /// <summary>

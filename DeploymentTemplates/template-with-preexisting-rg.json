@@ -109,6 +109,7 @@
         "location": "[parameters('appServicePlanLocation')]",
         "webAppName": "[if(empty(parameters('newWebAppName')), parameters('botId'), parameters('newWebAppName'))]",
         "functionAppPlanName": "[concat(parameters('functionAppName'), 'Plan')]",
+        "hubname": "[concat(variables('webAppName'), 'Hub')]",
         "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
         "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]",
         "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]",
@@ -335,6 +336,27 @@
                     ]
                 }
             }
+        },
+        {
+            "apiVersion": "2020-07-10-preview",
+            "type": "Microsoft.Devices/IotHubs",
+            "name": "[variables('hubname')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "eventHubEndpoints": {
+                    "events": {
+                        "retentionTimeInDays": 1,
+                        // https://docs.microsoft.com/ja-jp/azure/event-hubs/event-hubs-faq#how-many-partitions-do-i-need
+                        // 最小で良いので2
+                        "partitionCount": 2
+                    }
+                }
+            },
+            "sku": {
+                "name": "F1",
+                "capacity": "1"
+            },
+            "tags": {}
         }
     ]
 }

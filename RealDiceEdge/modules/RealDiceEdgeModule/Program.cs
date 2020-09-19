@@ -1,15 +1,14 @@
 namespace RealDiceEdgeModule
 {
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Newtonsoft.Json;
+    using RealDiceEdgeModule.Models;
     using System;
-    using System.IO;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
 
     class Program
     {
@@ -73,17 +72,23 @@ namespace RealDiceEdgeModule
             Console.WriteLine($"RollInternal {methodRequest.DataAsJson}");
 
             var moduleClient = userContext as ModuleClient;
+            var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
 
-            var rollResult = randomizer.Next(1, 6);
-            // TODO リクエストから取る
-            var id = Guid.NewGuid().ToString();
             // TODO 実装する
-            var result = "{" +
-                "\"result\":" + rollResult + "," +
-                "\"photoName\":\"" + id + ".jpg" + "\"," +
-                "\"videoName\":\"" + id + ".mp4" + "\"" +
-                "}";
-            await moduleClient.SendEventAsync("RollResult", new Message(Encoding.UTF8.GetBytes(result)));
+            var rollResult = randomizer.Next(1, 6);
+            var res = new RollResponse
+            {
+                Id = req.Id,
+                Result = rollResult,
+                PhotoName = req.Id + ".jpg",
+                VideoName = req.Id + ".mp4",
+            };
+            await moduleClient.SendEventAsync(
+                "RollResult",
+                new Message(Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(res)
+                )
+            ));
         }
 
         /// <summary>

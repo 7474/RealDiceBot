@@ -14,6 +14,7 @@ namespace RealDiceEdgeModule
     class Program
     {
         static int counter;
+        static Random randomizer = new Random();
 
         static void Main(string[] args)
         {
@@ -52,6 +53,27 @@ namespace RealDiceEdgeModule
 
             // Register callback to be called when a message is received by the module
             await ioTHubModuleClient.SetInputMessageHandlerAsync("input1", PipeMessage, ioTHubModuleClient);
+
+            // Register Module Method.
+            await ioTHubModuleClient.SetMethodHandlerAsync("Roll", Roll, ioTHubModuleClient);
+        }
+
+        static async Task<MethodResponse> Roll(MethodRequest methodRequest, object userContext)
+        {
+            var moduleClient = userContext as ModuleClient;
+            
+            // XXX ここで処理完了まで処理するとFunctionsの待ち時間が剥げる。
+            var rollResult = randomizer.Next(1, 6);
+            // XXX リクエストから取る
+            var id = Guid.NewGuid().ToString();
+            var result = "{" +
+                "\"result\":" + rollResult + "," +
+                "\"photoName\":\"" + id + ".jpg" + "\"," +
+                "\"videoName\":\"" + id + ".mp4" + "\"" +
+                "}";
+            return await Task.FromResult(
+                new MethodResponse(Encoding.UTF8.GetBytes(result), 200)
+            );
         }
 
         /// <summary>
@@ -82,7 +104,7 @@ namespace RealDiceEdgeModule
                         pipeMessage.Properties.Add(prop.Key, prop.Value);
                     }
                     await moduleClient.SendEventAsync("output1", pipeMessage);
-                
+
                     Console.WriteLine("Received message sent");
                 }
             }

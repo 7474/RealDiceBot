@@ -96,6 +96,10 @@
             "type": "string",
             "defaultValue": ""
         },
+        "baseUrl": {
+            "type": "string",
+            "defaultValue": ""
+        },
         "ioTHubEventHubsName": {
             "type": "string",
             "defaultValue": ""

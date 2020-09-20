@@ -8,5 +8,6 @@ namespace RealDiceCommon.Models.Edge
     public class EdgeRollRequest
     {
         public string Id { get; set; }
+        public string Message { get; set; }
     }
 }

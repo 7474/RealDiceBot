@@ -1,13 +1,15 @@
-using System;
+using Microsoft.Azure.Devices;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Bot.Connector.DirectLine;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RealDiceCommon.Models.Edge;
 using RealDiceCommon.Models.Roll;
 using RealDiceCommon.Utils;
+using RealDiceFunctions.Modes;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Bot.Connector.DirectLine;
-using Newtonsoft.Json;
 
 namespace RealDiceFunctions
 {
@@ -18,21 +20,59 @@ namespace RealDiceFunctions
         [FunctionName("HandleRequest")]
         public static async Task HandleRequestAsync(
             [QueueTrigger("roll-request-items")] RollContext req,
-            // TODO 結果じゃなくてRialDiceのロールへの要求にする。
-            // Functionかまさないで直撃でそちらに行ってもいいのかもしれんけれど、それは後で考える。
             [Queue("roll-result-items")] IAsyncCollector<RollContext> rollQueue,
+            [Table("rollcontext")] IAsyncCollector<RollContextTableRow> rollTable,
             ILogger log)
         {
             log.LogInformation($"HandleRequestAsync processed: {RealDiceConverter.Serialize(req)}");
 
-            // 行儀は悪いが間に合わせなので良し。
+            try
+            {
+                var iotHubServiceClient = ServiceClient.CreateFromConnectionString(
+                    Environment.GetEnvironmentVariable("IoTHubConnectionString"));
+
+                var resRow = JsonConvert.DeserializeObject<RollContextTableRow>(JsonConvert.SerializeObject(req));
+                resRow.PartitionKey = "Bot";
+                resRow.RowKey = resRow.Id;
+                await rollTable.AddAsync(resRow);
+
+                // https://github.com/Azure-Samples/azure-iot-samples-csharp/blob/master/iot-hub/Quickstarts/back-end-application/BackEndApplication.cs
+                var edgeMethodInvocation = new CloudToDeviceMethod(
+                    "Roll", TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30)
+                );
+                edgeMethodInvocation.SetPayloadJson(JsonConvert.SerializeObject(new EdgeRollRequest
+                {
+                    Id = req.Id,
+                }));
+                var testres = await iotHubServiceClient.GetServiceStatisticsAsync();
+                log.LogInformation($"   GetServiceStatisticsAsync: {RealDiceConverter.Serialize(testres)}");
+                // XXX 複数台デバイスがあるなら候補を一覧して割り当てられるとかっこいいね。
+                var deviceId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeDeviceId");
+                var moduleId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeModuleId");
+
+                var edgeResponse = await iotHubServiceClient.InvokeDeviceMethodAsync(
+                    deviceId, moduleId, edgeMethodInvocation
+                );
+                log.LogInformation($"   edgeResponse: {RealDiceConverter.Serialize(edgeResponse)}");
+
+                if (edgeResponse.Status < 300)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, $"   Edge Request Failed: {ex.Message}");
+            }
+
+            // エッジ呼び出しが失敗していたらFunctionsでレスポンスを返す
+            // ……ための関数向けのキューにメッセージを入れる
             var res = req;
             res.Results = req.Requests.Select(x => new RollResult
             {
                 Request = x,
                 Results = Enumerable.Range(0, (int)x.N).Select(x => (uint)randomizer.Next(1, 7)).ToArray(),
             }).ToList();
-
             await rollQueue.AddAsync(res);
         }
 
@@ -43,6 +83,35 @@ namespace RealDiceFunctions
         {
             log.LogInformation($"HandleResultAsync processed: {RealDiceConverter.Serialize(res)}");
 
+            await SendResult(res);
+        }
+
+        [FunctionName("HandleEdgeResult")]
+        public static async Task HandleEdgeResultAsync(
+            [EventHubTrigger("%IoTHubEventHubsName%", Connection = "IoTHubEventHubsNameConnectionString")]
+            EdgeRollResponse res,
+            [Table("rollcontext", "Bot", "{id}")] RollContextTableRow rollContext,
+            ILogger log)
+        {
+            log.LogInformation($"HandleResultAsync processed: {RealDiceConverter.Serialize(res)}");
+            log.LogInformation($"   RollContextTableRow: {RealDiceConverter.Serialize(rollContext)}");
+
+            if (rollContext == null)
+            {
+                // どうしようもない
+                return;
+            }
+
+            rollContext.Results = rollContext.Requests.Select(x => new RollResult
+            {
+                Results = new uint[] { (uint)res.Result },
+            }).ToList();
+
+            await SendResult(rollContext);
+        }
+
+        private static async Task SendResult(RollContext res)
+        {
             var originalActivity = RealDiceConverter.Deserialize<Activity>(res.MetaData["RequestActivity"]);
             originalActivity.Value = RealDiceConverter.Serialize(res);
             var responseActivity = new Activity("event");

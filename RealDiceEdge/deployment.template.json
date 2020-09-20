@@ -67,7 +67,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "${MODULES.RealDiceCameraModule}",
+              "image": "${MODULES.RealDiceCameraModule.arm32v7}",
               "createOptions": {}
             }
           },
@@ -77,7 +77,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "${MODULES.RealDiceCognitiveModule}",
+              "image": "${MODULES.RealDiceCognitiveModule.arm32v7}",
               "createOptions": {}
             }
           }

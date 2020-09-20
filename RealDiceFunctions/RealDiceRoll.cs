@@ -46,7 +46,7 @@ namespace RealDiceFunctions
                 }));
                 var testres = await iotHubServiceClient.GetServiceStatisticsAsync();
                 log.LogInformation($"   GetServiceStatisticsAsync: {RealDiceConverter.Serialize(testres)}");
-                // XXX •¡”‘äƒfƒoƒCƒX‚ª‚ ‚é‚È‚çŒó•â‚ðˆê——‚µ‚ÄŠ„‚è“–‚Ä‚ç‚ê‚é‚Æ‚©‚Á‚±‚¢‚¢‚ËB
+                // XXX ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½oï¿½Cï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ï¿½ê——ï¿½ï¿½ï¿½ÄŠï¿½ï¿½è“–ï¿½Ä‚ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ËB
                 var deviceId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeDeviceId");
                 var moduleId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeModuleId");
 
@@ -65,8 +65,8 @@ namespace RealDiceFunctions
                 log.LogError(ex, $"   Edge Request Failed: {ex.Message}");
             }
 
-            // ƒGƒbƒWŒÄ‚Ño‚µ‚ªŽ¸”s‚µ‚Ä‚¢‚½‚çFunctions‚ÅƒŒƒXƒ|ƒ“ƒX‚ð•Ô‚·
-            // cc‚½‚ß‚ÌŠÖ”Œü‚¯‚ÌƒLƒ…[‚ÉƒƒbƒZ[ƒW‚ð“ü‚ê‚é
+            // ï¿½Gï¿½bï¿½Wï¿½Ä‚Ñoï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½Functionsï¿½Åƒï¿½ï¿½Xï¿½|ï¿½ï¿½ï¿½Xï¿½ï¿½Ô‚ï¿½
+            // ï¿½cï¿½cï¿½ï¿½ï¿½ß‚ÌŠÖï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌƒLï¿½ï¿½ï¿½[ï¿½Éƒï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             var res = req;
             res.Results = req.Requests.Select(x => new RollResult
             {
@@ -88,7 +88,7 @@ namespace RealDiceFunctions
 
         [FunctionName("HandleEdgeResult")]
         public static async Task HandleEdgeResultAsync(
-            [EventHubTrigger("%IoTHubEventHubsName%", Connection = "IoTHubEventHubsNameConnectionString")]
+            [EventHubTrigger("%IoTHubEventHubsName%", Connection = "IoTHubEventHubsConnectionString")]
             EdgeRollResponse res,
             [Table("rollcontext", "Bot", "{id}")] RollContextTableRow rollContext,
             ILogger log)
@@ -98,7 +98,7 @@ namespace RealDiceFunctions
 
             if (rollContext == null)
             {
-                // ‚Ç‚¤‚µ‚æ‚¤‚à‚È‚¢
+                // ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½æ‚¤ï¿½ï¿½ï¿½È‚ï¿½
                 return;
             }
 

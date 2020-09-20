@@ -47,7 +47,7 @@ jobs:
           twitterAccessToken="${{ secrets.twitterAccessToken }}"
           twitterAccessTokenSecret="${{ secrets.twitterAccessTokenSecret }}"
           ioTHubEventHubsName="${{ secrets.ioTHubEventHubsName }}"
-          IoTHubEventHubsConnectionString="${{ secrets.IoTHubEventHubsConnectionString }}"
+          ioTHubEventHubsConnectionString="${{ secrets.ioTHubEventHubsConnectionString }}"
           ioTHubConnectionString="${{ secrets.ioTHubConnectionString }}"
           ioTHubRealDiceEdgeDeviceId="${{ secrets.ioTHubRealDiceEdgeDeviceId }}"
           --name "${{ env.AZURE_WEBAPP_NAME }}"

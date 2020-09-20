@@ -100,7 +100,7 @@
             "type": "string",
             "defaultValue": ""
         },
-        "IoTHubEventHubsConnectionString": {
+        "ioTHubEventHubsConnectionString": {
             "type": "string",
             "defaultValue": ""
         },
@@ -351,7 +351,7 @@
                         },
                         {
                             "name": "IoTHubEventHubsConnectionString",
-                            "value": "[parameters('IoTHubEventHubsConnectionString')]"
+                            "value": "[parameters('ioTHubEventHubsConnectionString')]"
                         },
                         {
                             // これはlistkeysで取ることもできる

@@ -2,6 +2,7 @@ namespace RealDiceCameraModule
 {
     using System;
     using System.IO;
+    using System.Net;
     using System.Runtime.InteropServices;
     using System.Runtime.Loader;
     using System.Security.Cryptography.X509Certificates;
@@ -10,10 +11,12 @@ namespace RealDiceCameraModule
     using System.Threading.Tasks;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Newtonsoft.Json;
+    using RealDiceCommon;
 
     class Program
     {
-        static int counter;
+        static HttpRouter http;
 
         static void Main(string[] args)
         {
@@ -24,6 +27,7 @@ namespace RealDiceCameraModule
             AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
             Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
             WhenCancelled(cts.Token).Wait();
+            http.Stop();
         }
 
         /// <summary>
@@ -50,43 +54,76 @@ namespace RealDiceCameraModule
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
 
-            // Register callback to be called when a message is received by the module
-            await ioTHubModuleClient.SetInputMessageHandlerAsync("input1", PipeMessage, ioTHubModuleClient);
+            http = new HttpRouter(new string[] { "http://+:80/" });
+            http.Register("/caption", SetCaption);
+            http.Register("/video/start", StartRecording);
+            http.Register("/video/end", EndRecording);
+            http.Register("/photo", TakePhoto);
+            http.Start();
+
+            await Task.CompletedTask;
         }
 
-        /// <summary>
-        /// This method is called whenever the module is sent a message from the EdgeHub. 
-        /// It just pipe the messages without any change.
-        /// It prints all the incoming messages.
-        /// </summary>
-        static async Task<MessageResponse> PipeMessage(Message message, object userContext)
+        //キャプション設定
+        static Task SetCaption(HttpListenerContext context)
         {
-            int counterValue = Interlocked.Increment(ref counter);
+            var request = context.Request;
+            var response = context.Response;
 
-            var moduleClient = userContext as ModuleClient;
-            if (moduleClient == null)
-            {
-                throw new InvalidOperationException("UserContext doesn't contain " + "expected values");
-            }
+            response.StatusCode = (int)HttpStatusCode.NoContent;
+            response.Close();
 
-            byte[] messageBytes = message.GetBytes();
-            string messageString = Encoding.UTF8.GetString(messageBytes);
-            Console.WriteLine($"Received message: {counterValue}, Body: [{messageString}]");
+            return Task.CompletedTask;
+        }
 
-            if (!string.IsNullOrEmpty(messageString))
-            {
-                using (var pipeMessage = new Message(messageBytes))
+        //録画開始
+        static Task StartRecording(HttpListenerContext context)
+        {
+            var request = context.Request;
+            var response = context.Response;
+
+            response.StatusCode = (int)HttpStatusCode.NoContent;
+            response.Close();
+
+            return Task.CompletedTask;
+        }
+
+        //録画終了
+        static Task EndRecording(HttpListenerContext context)
+        {
+            var request = context.Request;
+            var response = context.Response;
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+            response.ContentType = "application/json";
+            response.OutputStream.WriteString(JsonConvert.SerializeObject(
+                new
                 {
-                    foreach (var prop in message.Properties)
-                    {
-                        pipeMessage.Properties.Add(prop.Key, prop.Value);
-                    }
-                    await moduleClient.SendEventAsync("output1", pipeMessage);
-                
-                    Console.WriteLine("Received message sent");
+                    VideoFileName = "",
                 }
-            }
-            return MessageResponse.Completed;
+            ));
+            response.Close();
+
+            return Task.CompletedTask;
+        }
+
+        //静止画取得
+        static Task TakePhoto(HttpListenerContext context)
+        {
+            var request = context.Request;
+            var response = context.Response;
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+            response.ContentType = "application/json";
+            response.OutputStream.WriteString(JsonConvert.SerializeObject(
+                new
+                {
+                    PhotoFileName = "",
+                }
+            ));
+            response.Close();
+
+            return Task.CompletedTask;
         }
     }
 }

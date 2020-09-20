@@ -1,4 +1,4 @@
-namespace RealDiceCognitiveModule
+namespace RealDiceCommon
 {
     using System;
     using System.IO;
@@ -57,8 +57,6 @@ namespace RealDiceCognitiveModule
             http = new HttpRouter(new string[] { "http://+:80/" });
             http.Register("/cognitive", OnRequest);
             http.Start();
-
-            await Task.CompletedTask;
         }
 
         static Task OnRequest(HttpListenerContext context)

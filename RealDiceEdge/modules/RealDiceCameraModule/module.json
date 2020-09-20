@@ -4,7 +4,7 @@
     "image": {
         "repository": "$CONTAINER_REGISTRY_ADDRESS/realdicecamera",
         "tag": {
-            "version": "0.0.1",
+            "version": "0.0.2",
             "platforms": {
                 "arm32v7": "./Dockerfile.arm32v7"
             }

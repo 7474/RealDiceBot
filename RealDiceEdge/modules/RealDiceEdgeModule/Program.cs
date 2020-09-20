@@ -134,10 +134,12 @@ namespace RealDiceEdgeModule
                 var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
 
                 //キャプション設定
-                // TODO 実装する
+                var reqCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                Console.WriteLine($"reqCaptionResult: {reqCaptionResult.StatusCode}");
 
                 //録画開始
-                // TODO 実装する
+                var recStartResult = await cameraClient.PostAsync("/video/start", new StringContent(""));
+                Console.WriteLine($"recStartResult: {recStartResult.StatusCode}");
 
                 //ダイスオン
                 // TODO 実装する
@@ -147,7 +149,8 @@ namespace RealDiceEdgeModule
                 // TODO 実装する
 
                 //静止画取得
-                // TODO 実装する
+                var takePhotoResult = await cameraClient.PostAsync("/photo", new StringContent(""));
+                Console.WriteLine($"takePhotoResult: {takePhotoResult.StatusCode}");
 
                 //静止画認識
                 var rollResult = randomizer.Next(1, 6);
@@ -163,10 +166,12 @@ namespace RealDiceEdgeModule
                 }
 
                 //キャプション設定
-                // TODO 実装する
+                var resCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                Console.WriteLine($"resCaptionResult: {resCaptionResult.StatusCode}");
 
                 //録画終了
-                // TODO 実装する
+                var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
+                Console.WriteLine($"recEndResult: {recEndResult.StatusCode}");
 
                 //ファイルアップロード
                 // TODO 実装する

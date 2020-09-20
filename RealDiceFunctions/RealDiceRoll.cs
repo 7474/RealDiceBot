@@ -46,7 +46,7 @@ namespace RealDiceFunctions
                 }));
                 var testres = await iotHubServiceClient.GetServiceStatisticsAsync();
                 log.LogInformation($"   GetServiceStatisticsAsync: {RealDiceConverter.Serialize(testres)}");
-                // XXX ������f�o�C�X������Ȃ�����ꗗ���Ċ��蓖�Ă���Ƃ����������ˁB
+                // XXX 複数Edgeを扱えるようになればDeviceIdは動的にバランスさせたい。
                 var deviceId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeDeviceId");
                 var moduleId = Environment.GetEnvironmentVariable("IoTHubRealDiceEdgeModuleId");
 
@@ -65,8 +65,7 @@ namespace RealDiceFunctions
                 log.LogError(ex, $"   Edge Request Failed: {ex.Message}");
             }
 
-            // �G�b�W�Ăяo�������s���Ă�����Functions�Ń��X�|���X��Ԃ�
-            // �c�c���߂̊֐������̃L���[�Ƀ��b�Z�[�W������
+            // Edgeへのリクエストが失敗したらFunctionsで応答するためのキューに結果を入れる。
             var res = req;
             res.Results = req.Requests.Select(x => new RollResult
             {
@@ -98,7 +97,7 @@ namespace RealDiceFunctions
 
             if (rollContext == null)
             {
-                // �ǂ����悤���Ȃ�
+                // どうすることもできない
                 return;
             }
 

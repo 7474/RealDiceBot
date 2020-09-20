@@ -70,6 +70,16 @@
               "image": "${MODULES.RealDiceCameraModule}",
               "createOptions": {}
             }
+          },
+          "RealDiceCognitiveModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RealDiceCognitiveModule}",
+              "createOptions": {}
+            }
           }
         }
       }
@@ -79,7 +89,8 @@
         "schemaVersion": "1.0",
         "routes": {
           "RealDiceEdgeModuleToIoTHub": "FROM /messages/modules/RealDiceEdgeModule/outputs/* INTO $upstream",
-          "RealDiceCameraModuleToIoTHub": "FROM /messages/modules/RealDiceCameraModule/outputs/* INTO $upstream"
+          "RealDiceCameraModuleToIoTHub": "FROM /messages/modules/RealDiceCameraModule/outputs/* INTO $upstream",
+          "RealDiceCognitiveModuleToIoTHub": "FROM /messages/modules/RealDiceCognitiveModule/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

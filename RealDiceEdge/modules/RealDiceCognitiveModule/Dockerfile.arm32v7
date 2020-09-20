@@ -2,16 +2,19 @@ FROM microsoft/dotnet:2.1-sdk AS build-env
 WORKDIR /app
 
 COPY *.csproj ./
+# Fuck broken case.
 RUN dotnet restore
 
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out RealDiceCognitiveModule.csproj
 
 FROM microsoft/dotnet:2.1-runtime-stretch-slim-arm32v7
 WORKDIR /app
 COPY --from=build-env /app/out ./
 
-RUN useradd -ms /bin/bash moduleuser
-USER moduleuser
+# XXX Bind port 80
+# RUN useradd -ms /bin/bash moduleuser
+# USER moduleuser
 
+EXPOSE 80
 ENTRYPOINT ["dotnet", "RealDiceCognitiveModule.dll"]

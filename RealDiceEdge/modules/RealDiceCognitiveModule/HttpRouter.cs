@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RealDiceCognitiveModule

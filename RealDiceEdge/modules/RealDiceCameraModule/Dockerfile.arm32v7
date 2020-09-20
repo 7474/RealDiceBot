@@ -5,7 +5,7 @@ COPY *.csproj ./
 RUN dotnet restore
 
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out RealDiceCameraModule.csproj
 
 FROM microsoft/dotnet:2.1-runtime-stretch-slim-arm32v7
 WORKDIR /app
@@ -14,4 +14,5 @@ COPY --from=build-env /app/out ./
 RUN useradd -ms /bin/bash moduleuser
 USER moduleuser
 
+EXPOSE 80
 ENTRYPOINT ["dotnet", "RealDiceCameraModule.dll"]

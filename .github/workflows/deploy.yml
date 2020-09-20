@@ -63,7 +63,12 @@ jobs:
           twitterConsumerSecret="${{ secrets.twitterConsumerSecret }}"
           twitterAccessToken="${{ secrets.twitterAccessToken }}"
           twitterAccessTokenSecret="${{ secrets.twitterAccessTokenSecret }}"
+          ioTHubEventHubsName="${{ secrets.ioTHubEventHubsName }}"
+          ioTHubEventHubsConnectionString="${{ secrets.ioTHubEventHubsConnectionString }}"
+          ioTHubConnectionString="${{ secrets.ioTHubConnectionString }}"
+          ioTHubRealDiceEdgeDeviceId="${{ secrets.ioTHubRealDiceEdgeDeviceId }}"
           --name "${{ env.AZURE_WEBAPP_NAME }}"
+    # ioTHubRealDiceEdgeDeviceId辺りはSecretsというほどでもない
 
     - name: 'Run Azure webapp deploy action'
       uses: azure/webapps-deploy@v2

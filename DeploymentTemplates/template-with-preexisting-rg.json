@@ -96,7 +96,19 @@
             "type": "string",
             "defaultValue": ""
         },
-        "baseUrl": {
+        "ioTHubEventHubsName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "ioTHubEventHubsNameConnectionString": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "ioTHubConnectionString": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "ioTHubRealDiceEdgeDeviceId": {
             "type": "string",
             "defaultValue": ""
         }
@@ -332,6 +344,27 @@
                         {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                             "value": "[reference(resourceId('microsoft.insights/components', parameters('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
+                        },
+                        {
+                            "name": "IoTHubEventHubsName",
+                            "value": "[parameters('ioTHubEventHubsName')]"
+                        },
+                        {
+                            "name": "IoTHubEventHubsNameConnectionString",
+                            "value": "[parameters('ioTHubEventHubsNameConnectionString')]"
+                        },
+                        {
+                            // これはlistkeysで取ることもできる
+                            "name": "IoTHubConnectionString",
+                            "value": "[parameters('ioTHubConnectionString')]"
+                        },
+                        {
+                            "name": "IoTHubRealDiceEdgeDeviceId",
+                            "value": "[parameters('ioTHubRealDiceEdgeDeviceId')]"
+                        },
+                        {
+                            "name": "IoTHubRealDiceEdgeModuleId",
+                            "value": "RealDiceEdgeModule"
                         }
                     ]
                 }

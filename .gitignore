@@ -340,6 +340,8 @@ ASALocalRun/
 healthchecksdb
 
 # Local memo
+tmp/
 memo.md
 RealDiceBot.json
 RealDiceBotLocal.bot
+RealDiceBot/appsettings.Development.json

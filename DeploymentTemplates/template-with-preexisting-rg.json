@@ -128,8 +128,7 @@
         "hubname": "[concat(variables('webAppName'), 'Hub')]",
         "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
         "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]",
-        "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]",
-        "storageAccountApiVersion": "2019-06-01"
+        "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]"
     },
     "resources": [
         {
@@ -167,7 +166,7 @@
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
             "location": "[variables('location')]",
-            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "apiVersion": "2019-06-01",
             "sku": {
                 "name": "[parameters('storageAccountType')]"
             },
@@ -175,8 +174,8 @@
             "properties": {},
             "resources": [
               {
-                "type": "blobServices/containers",
-                "apiVersion": "[variables('storageAccountApiVersion')]",
+                "type": "Microsoft.Storage/storageAccountsblobServices/containers",
+                "apiVersion": "2019-06-01",
                 "name": "realdiceresults",
                 "properties": {
                   "publicAccess": "Blob"

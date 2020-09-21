@@ -103,6 +103,8 @@ namespace RealDiceFunctions
                 return;
             }
 
+            var containerUrl = Environment.GetEnvironmentVariable("ResultContainerBaseUri");
+            var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);
             rollContext.Results = rollContext.Requests.Select(x => new RollResult
             {
                 Results = new uint[] { (uint)res.Result },

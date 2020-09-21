@@ -172,7 +172,20 @@
                 "name": "[parameters('storageAccountType')]"
             },
             "kind": "StorageV2",
-            "properties": {}
+            "properties": {},
+            "resources": [
+              {
+                "type": "blobServices/containers",
+                "apiVersion": "[variables('storageAccountApiVersion')]",
+                "name": "realdiceresults",
+                "properties": {
+                  "publicAccess": "Blob"
+                },
+                "dependsOn": [
+                  "[variables('storageAccountName')]"
+                ]
+              }
+            ]
         },
         {
             "comments": "Create a new App Service Plan if no existing App Service Plan name was passed in.",

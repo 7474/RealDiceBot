@@ -16,7 +16,6 @@ namespace RealDiceEdgeModule
 
     class Program
     {
-        static int counter;
         static Random randomizer = new Random();
         // XXX userContextで取りまわした方が良い？
         static HttpClient cameraClient;
@@ -143,6 +142,8 @@ namespace RealDiceEdgeModule
 
                 //ダイスオン
                 // TODO 実装する
+
+                // 回す時間分だけ待つ。
                 await Task.Delay(randomizer.Next(300, 800));
 
                 //ダイスオフ
@@ -151,6 +152,10 @@ namespace RealDiceEdgeModule
                 //静止画取得
                 var takePhotoResult = await cameraClient.PostAsync("/photo", new StringContent(""));
                 Console.WriteLine($"takePhotoResult: {takePhotoResult.StatusCode}");
+                var takePhotoResultStr = await takePhotoResult.Content.ReadAsStringAsync();
+                Console.WriteLine($"    {takePhotoResultStr}");
+                dynamic takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
+                string photoFileName = takePhotoResultObj.photoFileName;
 
                 //静止画認識
                 var rollResult = randomizer.Next(1, 6);
@@ -181,7 +186,7 @@ namespace RealDiceEdgeModule
                 {
                     Id = req.Id,
                     Result = rollResult,
-                    PhotoName = req.Id + ".jpg",
+                    PhotoName = photoFileName,
                     VideoName = req.Id + ".mp4",
                 };
                 await moduleClient.SendEventAsync(

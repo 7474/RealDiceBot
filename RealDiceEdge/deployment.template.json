@@ -72,6 +72,14 @@
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
+            "env": {
+              "STORAGE_CONNECTION_STRING": {
+                "value": "DefaultEndpointsProtocol=http;BlobEndpoint=http://BlobStorageService:11002/realdicelocalstorage;AccountName=realdicelocalstorage;AccountKey=wxn0QgCIIbVh4xdWarmnhg==;"
+              },
+              "RESULT_CONTAINER_NAME": {
+                "value": "realdiceresults"
+              }
+            },
             "settings": {
               "image": "${MODULES.RealDiceCameraModule.arm32v7}",
               "createOptions": {
@@ -107,6 +115,37 @@
               "image": "${MODULES.RealDiceCognitiveModule.arm32v7}",
               "createOptions": {}
             }
+          },
+          "BlobStorageService": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azure-blob-storage:latest",
+              "createOptions": {
+                "HostConfig": {
+                  "Binds": [
+                    "/var/realdice/blobroot:/blobroot"
+                  ],
+                  "PortBindings": {
+                    "11002/tcp": [
+                      {
+                        "HostPort": "11002"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "env": {
+              "LOCAL_STORAGE_ACCOUNT_NAME": {
+                "value": "realdicelocalstorage"
+              },
+              "LOCAL_STORAGE_ACCOUNT_KEY": {
+                "value": "wxn0QgCIIbVh4xdWarmnhg=="
+              }
+            }
           }
         }
       }
@@ -117,10 +156,31 @@
         "routes": {
           "RealDiceEdgeModuleToIoTHub": "FROM /messages/modules/RealDiceEdgeModule/outputs/* INTO $upstream",
           "RealDiceCameraModuleToIoTHub": "FROM /messages/modules/RealDiceCameraModule/outputs/* INTO $upstream",
-          "RealDiceCognitiveModuleToIoTHub": "FROM /messages/modules/RealDiceCognitiveModule/outputs/* INTO $upstream"
+          "RealDiceCognitiveModuleToIoTHub": "FROM /messages/modules/RealDiceCognitiveModule/outputs/* INTO $upstream",
+          "BlobStorageServiceToIoTHub": "FROM /messages/modules/BlobStorageService/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
+        }
+      }
+    },
+    "BlobStorageService": {
+      "properties.desired": {
+        "deviceAutoDeleteProperties": {
+          "deleteOn": true,
+          "deleteAfterMinutes": 5,
+          "retainWhileUploading": false
+        },
+        "deviceToCloudUploadProperties": {
+          "uploadOn": true,
+          "uploadOrder": "OldestFirst",
+          "cloudStorageConnectionString": "$STORAGE_CONNECTION_STRING",
+          "storageContainersForUpload": {
+            "realdiceresults": {
+              "target": "realdiceresults"
+            }
+          },
+          "deleteAfterUpload": true
         }
       }
     }

@@ -176,7 +176,7 @@
               {
                 "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
                 "apiVersion": "2019-06-01",
-                "name": "realdiceresults",
+                "name": "default/realdiceresults",
                 "properties": {
                   "publicAccess": "Blob"
                 },

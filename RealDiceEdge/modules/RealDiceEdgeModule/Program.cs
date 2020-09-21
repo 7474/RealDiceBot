@@ -5,6 +5,10 @@ namespace RealDiceEdgeModule
     using Newtonsoft.Json;
     using RealDiceEdgeModule.Models;
     using System;
+    using System.Collections.Concurrent;
+    using System.ComponentModel;
+    using System.Net;
+    using System.Net.Http;
     using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
@@ -14,6 +18,11 @@ namespace RealDiceEdgeModule
     {
         static int counter;
         static Random randomizer = new Random();
+        // XXX userContextで取りまわした方が良い？
+        static HttpClient cameraClient;
+        static HttpClient cognitiveClient;
+        static ConcurrentQueue<RollRequestContext> rollRequestContexts;
+        static BackgroundWorker rollRequestWorker;
 
         static void Main(string[] args)
         {
@@ -24,6 +33,7 @@ namespace RealDiceEdgeModule
             AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
             Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
             WhenCancelled(cts.Token).Wait();
+            rollRequestWorker.CancelAsync();
         }
 
         /// <summary>
@@ -50,11 +60,44 @@ namespace RealDiceEdgeModule
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
 
-            // Register callback to be called when a message is received by the module
-            await ioTHubModuleClient.SetInputMessageHandlerAsync("input1", PipeMessage, ioTHubModuleClient);
+            cameraClient = new HttpClient()
+            {
+                BaseAddress = new Uri("http://RealDiceCameraModule/"),
+            };
+            cognitiveClient = new HttpClient()
+            {
+                BaseAddress = new Uri("http://RealDiceCognitiveModule/"),
+            };
+            rollRequestContexts = new ConcurrentQueue<RollRequestContext>();
 
             // Register Module Method.
             await ioTHubModuleClient.SetMethodHandlerAsync("Roll", Roll, ioTHubModuleClient);
+            rollRequestWorker = new BackgroundWorker();
+            rollRequestWorker.DoWork += RollRequestWorkerDoWork;
+            rollRequestWorker.RunWorkerAsync();
+        }
+
+        private static void RollRequestWorkerDoWork(object sender, DoWorkEventArgs e)
+        {
+            while (!e.Cancel)
+            {
+                try
+                {
+                    while (!rollRequestContexts.IsEmpty)
+                    {
+                        RollRequestContext context;
+                        if (rollRequestContexts.TryDequeue(out context))
+                        {
+                            RollInternal(context.Request, context.UserContext).Wait();
+                        }
+                    }
+                    Task.Delay(100).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
 
         static async Task<MethodResponse> Roll(MethodRequest methodRequest, object userContext)
@@ -63,7 +106,11 @@ namespace RealDiceEdgeModule
             {
                 Console.WriteLine($"Exec Roll {methodRequest.DataAsJson}");
                 // 完了を待たずに受付した旨を返す
-                _ = RollInternal(methodRequest, userContext);
+                rollRequestContexts.Enqueue(new RollRequestContext
+                {
+                    Request = methodRequest,
+                    UserContext = userContext as ModuleClient,
+                });
 
                 return await Task.FromResult(
                     new MethodResponse(202)
@@ -78,17 +125,58 @@ namespace RealDiceEdgeModule
             }
         }
 
-        static async Task RollInternal(MethodRequest methodRequest, object userContext)
+        static async Task RollInternal(MethodRequest methodRequest, ModuleClient moduleClient)
         {
             try
             {
                 Console.WriteLine($"Start RollInternal {methodRequest.DataAsJson}");
 
-                var moduleClient = userContext as ModuleClient;
                 var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
 
+                //キャプション設定
+                var reqCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                Console.WriteLine($"reqCaptionResult: {reqCaptionResult.StatusCode}");
+
+                //録画開始
+                var recStartResult = await cameraClient.PostAsync("/video/start", new StringContent(""));
+                Console.WriteLine($"recStartResult: {recStartResult.StatusCode}");
+
+                //ダイスオン
                 // TODO 実装する
+                await Task.Delay(randomizer.Next(300, 800));
+
+                //ダイスオフ
+                // TODO 実装する
+
+                //静止画取得
+                var takePhotoResult = await cameraClient.PostAsync("/photo", new StringContent(""));
+                Console.WriteLine($"takePhotoResult: {takePhotoResult.StatusCode}");
+
+                //静止画認識
                 var rollResult = randomizer.Next(1, 6);
+                var cognitiveResult = await cognitiveClient.PostAsync("/cognitive", new StringContent(""));
+                if (cognitiveResult.StatusCode == HttpStatusCode.OK)
+                {
+                    var rollResultString = await cognitiveResult.Content.ReadAsStringAsync();
+                    Console.WriteLine(rollResultString);
+
+                    // TODO 型を付ける
+                    dynamic rollResultJson = JsonConvert.DeserializeObject(rollResultString);
+                    rollResult = rollResultJson.Result;
+                }
+
+                //キャプション設定
+                var resCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                Console.WriteLine($"resCaptionResult: {resCaptionResult.StatusCode}");
+
+                //録画終了
+                var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
+                Console.WriteLine($"recEndResult: {recEndResult.StatusCode}");
+
+                //ファイルアップロード
+                // TODO 実装する
+
+                //ダイスロール応答メッセージ
                 var res = new RollResponse
                 {
                     Id = req.Id,
@@ -112,40 +200,11 @@ namespace RealDiceEdgeModule
                 throw;
             }
         }
+    }
 
-        /// <summary>
-        /// This method is called whenever the module is sent a message from the EdgeHub.
-        /// It just pipe the messages without any change.
-        /// It prints all the incoming messages.
-        /// </summary>
-        static async Task<MessageResponse> PipeMessage(Message message, object userContext)
-        {
-            int counterValue = Interlocked.Increment(ref counter);
-
-            var moduleClient = userContext as ModuleClient;
-            if (moduleClient == null)
-            {
-                throw new InvalidOperationException("UserContext doesn't contain " + "expected values");
-            }
-
-            byte[] messageBytes = message.GetBytes();
-            string messageString = Encoding.UTF8.GetString(messageBytes);
-            Console.WriteLine($"Received message: {counterValue}, Body: [{messageString}]");
-
-            if (!string.IsNullOrEmpty(messageString))
-            {
-                using (var pipeMessage = new Message(messageBytes))
-                {
-                    foreach (var prop in message.Properties)
-                    {
-                        pipeMessage.Properties.Add(prop.Key, prop.Value);
-                    }
-                    await moduleClient.SendEventAsync("output1", pipeMessage);
-
-                    Console.WriteLine("Received message sent");
-                }
-            }
-            return MessageResponse.Completed;
-        }
+    public class RollRequestContext
+    {
+        public MethodRequest Request { get; set; }
+        public ModuleClient UserContext { get; set; }
     }
 }

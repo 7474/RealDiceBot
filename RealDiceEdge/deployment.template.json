@@ -9,7 +9,13 @@
           "settings": {
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
-            "registryCredentials": {}
+            "registryCredentials": {
+              "registryName": {
+                "username": "$CONTAINER_REGISTRY_USERNAME",
+                "password": "$CONTAINER_REGISTRY_PASSWORD",
+                "address": "$CONTAINER_REGISTRY_ADDRESS"
+              }
+            }
           }
         },
         "systemModules": {
@@ -29,9 +35,21 @@
               "createOptions": {
                 "HostConfig": {
                   "PortBindings": {
-                    "5671/tcp": [{"HostPort": "5671"}],
-                    "8883/tcp": [{"HostPort": "8883"}],
-                    "443/tcp": [{"HostPort": "443"}]
+                    "5671/tcp": [
+                      {
+                        "HostPort": "5671"
+                      }
+                    ],
+                    "8883/tcp": [
+                      {
+                        "HostPort": "8883"
+                      }
+                    ],
+                    "443/tcp": [
+                      {
+                        "HostPort": "443"
+                      }
+                    ]
                   }
                 }
               }
@@ -39,16 +57,57 @@
           }
         },
         "modules": {
-            "RealDiceEdgeModule": {
-              "version": "1.0",
-              "type": "docker",
-              "status": "running",
-              "restartPolicy": "always",
-              "settings": {
-                "image": "${MODULES.RealDiceEdgeModule.arm32v7}",
-                "createOptions": {}
+          "RealDiceEdgeModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RealDiceEdgeModule.arm32v7}",
+              "createOptions": {}
+            }
+          },
+          "RealDiceCameraModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RealDiceCameraModule.arm32v7}",
+              "createOptions": {
+                "HostConfig": {
+                  "Binds": [
+                    "/var/realdice/video:/var/realdice/video",
+                    "/var/realdice/photo:/var/realdice/photo",
+                    "/dev/vchiq:/dev/vchiq",
+                    "/dev/video0:/dev/video0"
+                  ],
+                  "Devices": [
+                    {
+                      "PathOnHost": "/dev/vchiq",
+                      "PathInContainer": "/dev/vchiq",
+                      "CgroupPermissions": "mrw"
+                    },
+                    {
+                      "PathOnHost": "/dev/video0",
+                      "PathInContainer": "/dev/video0",
+                      "CgroupPermissions": "mrw"
+                    }
+                  ]
+                }
               }
             }
+          },
+          "RealDiceCognitiveModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RealDiceCognitiveModule.arm32v7}",
+              "createOptions": {}
+            }
+          }
         }
       }
     },
@@ -56,7 +115,9 @@
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-            "RealDiceEdgeModuleToIoTHub": "FROM /messages/modules/RealDiceEdgeModule/outputs/* INTO $upstream"
+          "RealDiceEdgeModuleToIoTHub": "FROM /messages/modules/RealDiceEdgeModule/outputs/* INTO $upstream",
+          "RealDiceCameraModuleToIoTHub": "FROM /messages/modules/RealDiceCameraModule/outputs/* INTO $upstream",
+          "RealDiceCognitiveModuleToIoTHub": "FROM /messages/modules/RealDiceCognitiveModule/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

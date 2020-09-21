@@ -43,6 +43,8 @@ namespace RealDiceFunctions
                 edgeMethodInvocation.SetPayloadJson(JsonConvert.SerializeObject(new EdgeRollRequest
                 {
                     Id = req.Id,
+                    // XXX メッセージを受け取る。
+                    Message = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
                 }));
                 var testres = await iotHubServiceClient.GetServiceStatisticsAsync();
                 log.LogInformation($"   GetServiceStatisticsAsync: {RealDiceConverter.Serialize(testres)}");

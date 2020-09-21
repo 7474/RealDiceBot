@@ -108,6 +108,7 @@ namespace RealDiceFunctions
             rollContext.Results = rollContext.Requests.Select(x => new RollResult
             {
                 Results = new uint[] { (uint)res.Result },
+                PhotoUrl = string.IsNullOrEmpty(res.PhotoName) ? null : photoUrl.ToString(),
             }).ToList();
 
             await SendResult(rollContext);

@@ -155,7 +155,7 @@ namespace RealDiceEdgeModule
                 var takePhotoResultStr = await takePhotoResult.Content.ReadAsStringAsync();
                 Console.WriteLine($"    {takePhotoResultStr}");
                 dynamic takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
-                string photoFileName = takePhotoResultObj.photoFileName;
+                string photoFileName = takePhotoResultObj.PhotoFileName;
 
                 //静止画認識
                 var rollResult = randomizer.Next(1, 6);

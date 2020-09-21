@@ -50,6 +50,7 @@ jobs:
           ioTHubEventHubsConnectionString="${{ secrets.ioTHubEventHubsConnectionString }}"
           ioTHubConnectionString="${{ secrets.ioTHubConnectionString }}"
           ioTHubRealDiceEdgeDeviceId="${{ secrets.ioTHubRealDiceEdgeDeviceId }}"
+          resultContainerBaseUri="https://realdicebot66vfhffepftuc.blob.core.windows.net/realdiceresults/"
           --name "${{ env.AZURE_WEBAPP_NAME }}"
 
   dotnet:

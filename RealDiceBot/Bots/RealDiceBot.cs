@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace RealDiceBot.Bots
             await turnContext.SendActivityAsync(MessageFactory.Text(replyText, replyText), cancellationToken);
         }
 
-        // XXX Ç≥ÇµÇ†ÇΩÇ¡ÇƒÉEÉFÉãÉJÉÄÉÅÉbÉZÅ[ÉWóvÇÁÇÒãCÇ™Ç∑ÇÈÅB
+        // XXX „Åï„Åó„ÅÇ„Åü„Å£„Å¶„Ç¶„Çß„É´„Ç´„É†„É°„ÉÉ„Çª„Éº„Ç∏Ë¶Å„Çâ„ÇìÊ∞ó„Åå„Åô„Çã„ÄÇ
         //protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
         //{
         //    var welcomeText = "Hello. I'm Real DiceBot. " +
@@ -66,15 +67,30 @@ namespace RealDiceBot.Bots
 
         private IList<Attachment> GetAttachments(RollResult res)
         {
-            return res.Results
-                .Select(x => $"{x}.jpg")
-                .Select(x => staticAssets.Files[x])
-                .Select(x => new Attachment
+            if (string.IsNullOrEmpty(res.PhotoUrl))
+            {
+                return res.Results
+                    .Select(x => $"{x}.jpg")
+                    .Select(x => staticAssets.Files[x])
+                    .Select(x => new Attachment
+                    {
+                        Name = x.Name,
+                        ContentType = x.ContentType,
+                        ContentUrl = x.Url,
+                    }).ToList();
+            }
+            else
+            {
+                return new List<Attachment>()
                 {
-                    Name = x.Name,
-                    ContentType = x.ContentType,
-                    ContentUrl = x.Url,
-                }).ToList();
+                    new Attachment
+                    {
+                        Name = Path.GetFileName(res.PhotoUrl),
+                        ContentType = "image/jpg",
+                        ContentUrl = res.PhotoUrl,
+                    }
+                };
+            }
         }
 
         protected override async Task OnEventActivityAsync(ITurnContext<IEventActivity> turnContext, CancellationToken cancellationToken)
@@ -88,6 +104,7 @@ namespace RealDiceBot.Bots
                     var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
                     var message =
                         $"1d6 = {res.Results[0].Results[0]} !\n" +
+                        "Ôºà„ÉÄ„Ç§„Çπ„ÅØÂõû„Å£„Å¶„Åä„Çâ„Åö„ÄÇÂá∫ÁõÆ„ÅØÁñë‰ºº‰π±Êï∞Ôºâ\n" + 
                         $"> {continueConversationActivity.Text}";
 
                     var activity = MessageFactory.Text(message);

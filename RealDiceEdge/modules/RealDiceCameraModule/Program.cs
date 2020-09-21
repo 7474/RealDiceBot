@@ -1,21 +1,17 @@
-using Swan;
-
 namespace RealDiceCameraModule
 {
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Microsoft.Azure.Storage;
+    using Microsoft.Azure.Storage.Blob;
+    using Newtonsoft.Json;
+    using RealDiceCommon;
     using System;
     using System.IO;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Storage.Blobs;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
-    using Newtonsoft.Json;
-    using RealDiceCommon;
     using Unosquare.RaspberryIO;
     using Unosquare.RaspberryIO.Camera;
 
@@ -23,8 +19,8 @@ namespace RealDiceCameraModule
     {
         static HttpRouter http;
         //static readonly string videoDir = "/var/realdice/video";
-        static readonly string photoDir = "/var/realdice/photo";
-        static BlobContainerClient containerClient;
+        //static readonly string photoDir = "/var/realdice/photo";
+        static CloudBlobContainer cloudBlobContainer;
 
         static void Main(string[] args)
         {
@@ -62,15 +58,12 @@ namespace RealDiceCameraModule
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
 
-            containerClient = new BlobContainerClient(
-                Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING"),
-                Environment.GetEnvironmentVariable("RESULT_CONTAINER_NAME"),
-                new BlobClientOptions
-                {
-                    // > Blob storage modules on IoT Edge use the Azure Storage SDKs, and are consistent with the 2017-04-17 version of the Azure Storage API for block blob endpoints.
-                    Version = "2017-04-17",
-                });
-            await containerClient.CreateIfNotExistsAsync();
+            var connectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            var containerName = Environment.GetEnvironmentVariable("RESULT_CONTAINER_NAME");
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var cloudBlobClient = storageAccount.CreateCloudBlobClient();
+            cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+            await cloudBlobContainer.CreateIfNotExistsAsync();
 
             http = new HttpRouter(new string[] { "http://+:80/" });
             http.Register("/caption", SetCaption);
@@ -154,12 +147,14 @@ namespace RealDiceCameraModule
             var photoSetting = GetPhotoSetting();
             Console.WriteLine($"photoSetting: {photoSetting.CreateProcessArguments()}");
             var photoBytes = await Pi.Camera.CaptureImageAsync(photoSetting);
-            // TODO 要が済んだら消す
-            var filePath = Path.Combine(photoDir, photoFileName);
-            File.WriteAllBytes(filePath, photoBytes);
+            //// TODO 要が済んだら消す
+            //var filePath = Path.Combine(photoDir, photoFileName);
+            //Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            //File.WriteAllBytes(filePath, photoBytes);
 
-            var blobClient = containerClient.GetBlobClient(photoFileName);
-            await blobClient.UploadAsync(new MemoryStream(photoBytes));
+            var blob = cloudBlobContainer.GetBlockBlobReference(photoFileName);
+            blob.Properties.ContentType = "image/jpg";
+            await blob.UploadFromStreamAsync(new MemoryStream(photoBytes));
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentType = "application/json";

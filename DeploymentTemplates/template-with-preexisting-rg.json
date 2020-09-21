@@ -174,7 +174,7 @@
             "properties": {},
             "resources": [
               {
-                "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                "type": "blobServices/containers",
                 "apiVersion": "2019-06-01",
                 "name": "default/realdiceresults",
                 "properties": {

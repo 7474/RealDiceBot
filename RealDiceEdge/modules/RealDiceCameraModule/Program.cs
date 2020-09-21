@@ -1,28 +1,26 @@
-using Swan;
-
 namespace RealDiceCameraModule
 {
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Microsoft.Azure.Storage;
+    using Microsoft.Azure.Storage.Blob;
+    using Newtonsoft.Json;
+    using RealDiceCommon;
     using System;
     using System.IO;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
-    using Newtonsoft.Json;
-    using RealDiceCommon;
     using Unosquare.RaspberryIO;
     using Unosquare.RaspberryIO.Camera;
 
     class Program
     {
         static HttpRouter http;
-        static readonly string videoDir = "/var/realdice/video";
-        static readonly string photoDir = "/var/realdice/photo";
+        //static readonly string videoDir = "/var/realdice/video";
+        //static readonly string photoDir = "/var/realdice/photo";
+        static CloudBlobContainer cloudBlobContainer;
 
         static void Main(string[] args)
         {
@@ -60,6 +58,13 @@ namespace RealDiceCameraModule
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
 
+            var connectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            var containerName = Environment.GetEnvironmentVariable("RESULT_CONTAINER_NAME");
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var cloudBlobClient = storageAccount.CreateCloudBlobClient();
+            cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+            await cloudBlobContainer.CreateIfNotExistsAsync();
+
             http = new HttpRouter(new string[] { "http://+:80/" });
             http.Register("/caption", SetCaption);
             http.Register("/video/start", StartRecording);
@@ -70,7 +75,7 @@ namespace RealDiceCameraModule
             await Task.CompletedTask;
         }
 
-        //ƒLƒƒƒvƒVƒ‡ƒ“İ’è
+        //ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³è¨­å®š
         static Task SetCaption(HttpListenerContext context)
         {
             var request = context.Request;
@@ -82,13 +87,13 @@ namespace RealDiceCameraModule
             return Task.CompletedTask;
         }
 
-        //˜^‰æŠJn
+        //éŒ²ç”»é–‹å§‹
         static Task StartRecording(HttpListenerContext context)
         {
             var request = context.Request;
             var response = context.Response;
 
-            // XXX raspistill ‚ÍƒrƒfƒIƒXƒgƒŠ[ƒ€ŠJ‚¢‚Ä‚¢‚é‚Ég‚¦‚È‚¢‚Ì‚Å‚Ü‚¾‚â‚ç‚È‚¢
+            // XXX raspistill ã¯ãƒ“ãƒ‡ã‚ªã‚¹ãƒˆãƒªãƒ¼ãƒ é–‹ã„ã¦ã„ã‚‹æ™‚ã«ä½¿ãˆãªã„ã®ã§ã¾ã ã‚„ã‚‰ãªã„
             //var videoSetting = GetVideoSetting();
             //Console.WriteLine($"videoSetting: {videoSetting.CreateProcessArguments()}");
             //Pi.Camera.OpenVideoStream(videoSetting, OnVideoFrame, OnVideoComplete);
@@ -109,13 +114,13 @@ namespace RealDiceCameraModule
             Console.WriteLine("OnVideoComplete");
         }
 
-        //˜^‰æI—¹
+        //éŒ²ç”»çµ‚äº†
         static Task EndRecording(HttpListenerContext context)
         {
             var request = context.Request;
             var response = context.Response;
 
-            //// XXX ŠJ‚¢‚Ä‚¢‚È‚©‚Á‚½‚Æ‚©A•Â‚¶‚ç‚ê‚È‚©‚Á‚½‚Æ‚©
+            //// XXX é–‹ã„ã¦ã„ãªã‹ã£ãŸæ™‚ã¨ã‹ã€é–‰ã˜ã‚‰ã‚Œãªã‹ã£ãŸæ™‚ã¨ã‹
             //Pi.Camera.CloseVideoStream();
 
             response.StatusCode = (int)HttpStatusCode.OK;
@@ -131,18 +136,25 @@ namespace RealDiceCameraModule
             return Task.CompletedTask;
         }
 
-        //Ã~‰ææ“¾
+        //é™æ­¢ç”»å–å¾—
         static async Task TakePhoto(HttpListenerContext context)
         {
             var request = context.Request;
             var response = context.Response;
 
-            var photoFileName = GetTimestampString() + ".jpg";
-            var filePath = Path.Combine(photoDir, photoFileName);
+            var photoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".jpg";
+
             var photoSetting = GetPhotoSetting();
             Console.WriteLine($"photoSetting: {photoSetting.CreateProcessArguments()}");
             var photoBytes = await Pi.Camera.CaptureImageAsync(photoSetting);
-            File.WriteAllBytes(filePath, photoBytes);
+            //// TODO è¦ãŒæ¸ˆã‚“ã ã‚‰æ¶ˆã™
+            //var filePath = Path.Combine(photoDir, photoFileName);
+            //Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            //File.WriteAllBytes(filePath, photoBytes);
+
+            var blob = cloudBlobContainer.GetBlockBlobReference(photoFileName);
+            blob.Properties.ContentType = "image/jpg";
+            await blob.UploadFromStreamAsync(new MemoryStream(photoBytes));
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentType = "application/json";
@@ -155,6 +167,10 @@ namespace RealDiceCameraModule
             response.Close();
         }
 
+        static string GetDateString()
+        {
+            return DateTimeOffset.UtcNow.ToString("yyyyMMdd");
+        }
         static string GetTimestampString()
         {
             return DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff");

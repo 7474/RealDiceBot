@@ -1,411 +1,419 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "appId": {
-            "type": "string",
-            "metadata": {
-                "description": "Active Directory App ID, set as MicrosoftAppId in the Web App's Application Settings."
-            }
-        },
-        "appSecret": {
-            "type": "string",
-            "metadata": {
-                "description": "Active Directory App Password, set as MicrosoftAppPassword in the Web App's Application Settings. Defaults to \"\"."
-            }
-        },
-        "botId": {
-            "type": "string",
-            "metadata": {
-                "description": "The globally unique and immutable bot ID. Also used to configure the displayName of the bot, which is mutable."
-            }
-        },
-        "botSku": {
-            "defaultValue": "F0",
-            "type": "string",
-            "metadata": {
-                "description": "The pricing tier of the Bot Service Registration. Acceptable values are F0 and S1."
-            }
-        },
-        "newAppServicePlanName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The name of the new App Service Plan."
-            }
-        },
-        "newAppServicePlanSku": {
-            "type": "object",
-            "defaultValue": {
-                "name": "F1",
-                "tier": "Free"
-            },
-            "metadata": {
-                "description": "The SKU of the App Service Plan."
-            }
-        },
-        "appServicePlanLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "The location of the App Service Plan."
-            }
-        },
-        "existingAppServicePlan": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the existing App Service Plan used to create the Web App for the bot."
-            }
-        },
-        "newWebAppName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The globally unique name of the Web App. Defaults to the value passed in for \"botId\"."
-            }
-        },
-        "functionAppName": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "storageAccountType": {
-            "type": "string",
-            "defaultValue": "Standard_LRS"
-        },
-        "directLineExtensionKey": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "directLineSecret": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "twitterConsumerKey": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "twitterConsumerSecret": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "twitterAccessToken": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "twitterAccessTokenSecret": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "baseUrl": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "ioTHubEventHubsName": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "ioTHubEventHubsConnectionString": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "ioTHubConnectionString": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "ioTHubRealDiceEdgeDeviceId": {
-            "type": "string",
-            "defaultValue": ""
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appId": {
+      "type": "string",
+      "metadata": {
+        "description": "Active Directory App ID, set as MicrosoftAppId in the Web App's Application Settings."
+      }
     },
-    "variables": {
-        "defaultAppServicePlanName": "[if(empty(parameters('existingAppServicePlan')), 'createNewAppServicePlan', parameters('existingAppServicePlan'))]",
-        "useExistingAppServicePlan": "[not(equals(variables('defaultAppServicePlanName'), 'createNewAppServicePlan'))]",
-        "servicePlanName": "[if(variables('useExistingAppServicePlan'), parameters('existingAppServicePlan'), parameters('newAppServicePlanName'))]",
-        "resourcesLocation": "[parameters('appServicePlanLocation')]",
-        "location": "[parameters('appServicePlanLocation')]",
-        "webAppName": "[if(empty(parameters('newWebAppName')), parameters('botId'), parameters('newWebAppName'))]",
-        "functionAppPlanName": "[concat(parameters('functionAppName'), 'Plan')]",
-        "hubname": "[concat(variables('webAppName'), 'Hub')]",
-        "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
-        "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]",
-        "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]"
+    "appSecret": {
+      "type": "string",
+      "metadata": {
+        "description": "Active Directory App Password, set as MicrosoftAppPassword in the Web App's Application Settings. Defaults to \"\"."
+      }
     },
-    "resources": [
+    "botId": {
+      "type": "string",
+      "metadata": {
+        "description": "The globally unique and immutable bot ID. Also used to configure the displayName of the bot, which is mutable."
+      }
+    },
+    "botSku": {
+      "defaultValue": "F0",
+      "type": "string",
+      "metadata": {
+        "description": "The pricing tier of the Bot Service Registration. Acceptable values are F0 and S1."
+      }
+    },
+    "newAppServicePlanName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The name of the new App Service Plan."
+      }
+    },
+    "newAppServicePlanSku": {
+      "type": "object",
+      "defaultValue": {
+        "name": "F1",
+        "tier": "Free"
+      },
+      "metadata": {
+        "description": "The SKU of the App Service Plan."
+      }
+    },
+    "appServicePlanLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of the App Service Plan."
+      }
+    },
+    "existingAppServicePlan": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the existing App Service Plan used to create the Web App for the bot."
+      }
+    },
+    "newWebAppName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The globally unique name of the Web App. Defaults to the value passed in for \"botId\"."
+      }
+    },
+    "functionAppName": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS"
+    },
+    "directLineExtensionKey": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "directLineSecret": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "twitterConsumerKey": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "twitterConsumerSecret": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "twitterAccessToken": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "twitterAccessTokenSecret": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "baseUrl": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "ioTHubEventHubsName": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "ioTHubEventHubsConnectionString": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "ioTHubConnectionString": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "ioTHubRealDiceEdgeDeviceId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "resultContainerBaseUri": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+    "defaultAppServicePlanName": "[if(empty(parameters('existingAppServicePlan')), 'createNewAppServicePlan', parameters('existingAppServicePlan'))]",
+    "useExistingAppServicePlan": "[not(equals(variables('defaultAppServicePlanName'), 'createNewAppServicePlan'))]",
+    "servicePlanName": "[if(variables('useExistingAppServicePlan'), parameters('existingAppServicePlan'), parameters('newAppServicePlanName'))]",
+    "resourcesLocation": "[parameters('appServicePlanLocation')]",
+    "location": "[parameters('appServicePlanLocation')]",
+    "webAppName": "[if(empty(parameters('newWebAppName')), parameters('botId'), parameters('newWebAppName'))]",
+    "functionAppPlanName": "[concat(parameters('functionAppName'), 'Plan')]",
+    "hubname": "[concat(variables('webAppName'), 'Hub')]",
+    "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
+    "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]",
+    "storageAccountName": "[toLower(concat(variables('webAppName'), uniqueString(subscription().subscriptionId)))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-05-01-preview",
+      "name": "[variables('webAppName')]",
+      "type": "microsoft.insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "ApplicationId": "[variables('webAppName')]"
+      }
+    },
+    {
+      "apiVersion": "2018-05-01-preview",
+      "name": "[parameters('functionAppName')]",
+      "type": "microsoft.insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "ApplicationId": "[parameters('functionAppName')]",
+        "Request_Source": "IbizaWebAppExtensionCreate"
+      }
+    },
+    {
+      "apiVersion": "2018-05-01-preview",
+      "name": "[concat(variables('webAppName'),'Bot')]",
+      "type": "microsoft.insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "ApplicationId": "[concat(variables('webAppName'),'Bot')]"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "location": "[variables('location')]",
+      "apiVersion": "2019-06-01",
+      "sku": {
+        "name": "[parameters('storageAccountType')]"
+      },
+      "kind": "StorageV2",
+      "properties": {},
+      "resources": [
         {
-            "apiVersion": "2018-05-01-preview",
-            "name": "[variables('webAppName')]",
-            "type": "microsoft.insights/components",
-            "location": "[resourceGroup().location]",
-            "tags": {},
-            "properties": {
-                "ApplicationId": "[variables('webAppName')]"
-            }
-        },
-        {
-            "apiVersion": "2018-05-01-preview",
-            "name": "[parameters('functionAppName')]",
-            "type": "microsoft.insights/components",
-            "location": "[resourceGroup().location]",
-            "tags": {},
-            "properties": {
-                "ApplicationId": "[parameters('functionAppName')]",
-                "Request_Source": "IbizaWebAppExtensionCreate"
-            }
-        },
-        {
-            "apiVersion": "2018-05-01-preview",
-            "name": "[concat(variables('webAppName'),'Bot')]",
-            "type": "microsoft.insights/components",
-            "location": "[resourceGroup().location]",
-            "tags": {},
-            "properties": {
-                "ApplicationId": "[concat(variables('webAppName'),'Bot')]"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('storageAccountName')]",
-            "location": "[variables('location')]",
-            "apiVersion": "2019-06-01",
-            "sku": {
-                "name": "[parameters('storageAccountType')]"
-            },
-            "kind": "StorageV2",
-            "properties": {},
-            "resources": [
-              {
-                "type": "blobServices/containers",
-                "apiVersion": "2019-06-01",
-                "name": "default/realdiceresults",
-                "properties": {
-                  "publicAccess": "Blob"
-                },
-                "dependsOn": [
-                  "[variables('storageAccountName')]"
-                ]
-              }
-            ]
-        },
-        {
-            "comments": "Create a new App Service Plan if no existing App Service Plan name was passed in.",
-            "type": "Microsoft.Web/serverfarms",
-            "condition": "[not(variables('useExistingAppServicePlan'))]",
-            "name": "[variables('servicePlanName')]",
-            "apiVersion": "2018-02-01",
-            "location": "[variables('resourcesLocation')]",
-            "sku": "[parameters('newAppServicePlanSku')]",
-            "properties": {
-                "name": "[variables('servicePlanName')]"
-            }
-        },
-        {
-            "comments": "Create a Web App using an App Service Plan",
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2015-08-01",
-            "location": "[variables('resourcesLocation')]",
-            "kind": "app",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
-                "[resourceId('microsoft.insights/components', variables('webAppName'))]"
-            ],
-            "name": "[variables('webAppName')]",
-            "properties": {
-                "name": "[variables('webAppName')]",
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
-                "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "BaseUrl",
-                            "value": "[parameters('baseUrl')]"
-                        },
-                        {
-                            "name": "MicrosoftAppId",
-                            "value": "[parameters('appId')]"
-                        },
-                        {
-                            "name": "MicrosoftAppPassword",
-                            "value": "[parameters('appSecret')]"
-                        },
-                        {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
-                        },
-                        {
-                            "name": "DirectLineExtensionKey",
-                            "value": "[parameters('directLineExtensionKey')]"
-                        },
-                        {
-                            "name": "DIRECTLINE_EXTENSION_VERSION",
-                            "value": "latest"
-                        },
-                        {
-                            "name": "DirectLineSecret",
-                            "value": "[parameters('directLineSecret')]"
-                        },
-                        {
-                            "name": "Twitter__ConsumerKey",
-                            "value": "[parameters('twitterConsumerKey')]"
-                        },
-                        {
-                            "name": "Twitter__ConsumerSecret",
-                            "value": "[parameters('twitterConsumerSecret')]"
-                        },
-                        {
-                            "name": "Twitter__BearerToken",
-                            "value": ""
-                        },
-                        {
-                            "name": "Twitter__AccessToken",
-                            "value": "[parameters('twitterAccessToken')]"
-                        },
-                        {
-                            "name": "Twitter__AccessTokenSecret",
-                            "value": "[parameters('twitterAccessTokenSecret')]"
-                        },
-                        {
-                            // For Bot Framework
-                            // https://docs.microsoft.com/ja-jp/azure/bot-service/bot-builder-telemetry?view=azure-bot-service-4.0&tabs=csharp
-                            "name": "ApplicationInsights__InstrumentationKey",
-                            "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
-                        },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
-                        },
-                        {
-                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
-                            "value": "~2"
-                        }
-                    ],
-                    "cors": {
-                        "allowedOrigins": [
-                            "https://botservice.hosting.portal.azure.net",
-                            "https://hosting.onecloud.azure-test.net/"
-                        ]
-                    },
-                    "webSocketsEnabled": true
-                }
-            }
-        },
-        {
-            "apiVersion": "2017-12-01",
-            "type": "Microsoft.BotService/botServices",
-            "name": "[parameters('botId')]",
-            "location": "global",
-            "kind": "bot",
-            "sku": {
-                "name": "[parameters('botSku')]"
-            },
-            "properties": {
-                "name": "[parameters('botId')]",
-                "displayName": "[parameters('botId')]",
-                "endpoint": "[variables('botEndpoint')]",
-                "msaAppId": "[parameters('appId')]",
-                "developerAppInsightsApplicationId": "[concat(variables('webAppName'),'Bot')]",
-                "developerAppInsightKey": "[reference(resourceId('microsoft.insights/components', concat(variables('webAppName'),'Bot')), '2018-05-01-preview').InstrumentationKey]",
-                "publishingCredentials": null,
-                "storageResourceId": null,
-                "iconUrl": "[concat(parameters('baseUrl'), 'images/icon_400x400.png')]"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
-            ]
-        },
-        {
-            "apiVersion": "2018-11-01",
-            "kind": "",
-            "location": "[resourceGroup().location]",
-            "name": "[variables('functionAppPlanName')]",
-            "properties": {
-                "name": "[variables('functionAppPlanName')]"
-            },
-            "sku": {
-                "Tier": "Dynamic",
-                "Name": "Y1"
-            },
-            "type": "Microsoft.Web/serverfarms"
-        },
-        {
-            "name": "[parameters('functionAppName')]",
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2018-11-01",
-            "location": "[resourceGroup().location]",
-            "kind": "functionapp",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]",
-                "[resourceId('microsoft.insights/components', parameters('functionAppName'))]"
-            ],
-            "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
-                "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
-                        },
-                        {
-                            "name": "DirectLineSecret",
-                            "value": "[listChannelWithKeys(resourceId('Microsoft.BotService/botServices/channels', parameters('botId'), 'DirectLineChannel'), '2018-07-12').properties.properties.sites[0].key]"
-                        },
-                        {
-                            "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
-                        },
-                        {
-                            "name": "FUNCTIONS_WORKER_RUNTIME",
-                            "value": "dotnet"
-                        },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components', parameters('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
-                        },
-                        {
-                            "name": "IoTHubEventHubsName",
-                            "value": "[parameters('ioTHubEventHubsName')]"
-                        },
-                        {
-                            "name": "IoTHubEventHubsConnectionString",
-                            "value": "[parameters('ioTHubEventHubsConnectionString')]"
-                        },
-                        {
-                            // これはlistkeysで取ることもできる
-                            "name": "IoTHubConnectionString",
-                            "value": "[parameters('ioTHubConnectionString')]"
-                        },
-                        {
-                            "name": "IoTHubRealDiceEdgeDeviceId",
-                            "value": "[parameters('ioTHubRealDiceEdgeDeviceId')]"
-                        },
-                        {
-                            "name": "IoTHubRealDiceEdgeModuleId",
-                            "value": "RealDiceEdgeModule"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "apiVersion": "2020-07-10-preview",
-            "type": "Microsoft.Devices/IotHubs",
-            "name": "[variables('hubname')]",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "eventHubEndpoints": {
-                    "events": {
-                        "retentionTimeInDays": 1,
-                        // https://docs.microsoft.com/ja-jp/azure/event-hubs/event-hubs-faq#how-many-partitions-do-i-need
-                        // 最小で良いので2
-                        "partitionCount": 2
-                    }
-                }
-            },
-            "sku": {
-                "name": "F1",
-                "capacity": "1"
-            },
-            "tags": {}
+          "type": "blobServices/containers",
+          "apiVersion": "2019-06-01",
+          "name": "default/realdiceresults",
+          "properties": {
+            "publicAccess": "Blob"
+          },
+          "dependsOn": [
+            "[variables('storageAccountName')]"
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "comments": "Create a new App Service Plan if no existing App Service Plan name was passed in.",
+      "type": "Microsoft.Web/serverfarms",
+      "condition": "[not(variables('useExistingAppServicePlan'))]",
+      "name": "[variables('servicePlanName')]",
+      "apiVersion": "2018-02-01",
+      "location": "[variables('resourcesLocation')]",
+      "sku": "[parameters('newAppServicePlanSku')]",
+      "properties": {
+        "name": "[variables('servicePlanName')]"
+      }
+    },
+    {
+      "comments": "Create a Web App using an App Service Plan",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2015-08-01",
+      "location": "[variables('resourcesLocation')]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
+        "[resourceId('microsoft.insights/components', variables('webAppName'))]"
+      ],
+      "name": "[variables('webAppName')]",
+      "properties": {
+        "name": "[variables('webAppName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "BaseUrl",
+              "value": "[parameters('baseUrl')]"
+            },
+            {
+              "name": "MicrosoftAppId",
+              "value": "[parameters('appId')]"
+            },
+            {
+              "name": "MicrosoftAppPassword",
+              "value": "[parameters('appSecret')]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+            },
+            {
+              "name": "DirectLineExtensionKey",
+              "value": "[parameters('directLineExtensionKey')]"
+            },
+            {
+              "name": "DIRECTLINE_EXTENSION_VERSION",
+              "value": "latest"
+            },
+            {
+              "name": "DirectLineSecret",
+              "value": "[parameters('directLineSecret')]"
+            },
+            {
+              "name": "Twitter__ConsumerKey",
+              "value": "[parameters('twitterConsumerKey')]"
+            },
+            {
+              "name": "Twitter__ConsumerSecret",
+              "value": "[parameters('twitterConsumerSecret')]"
+            },
+            {
+              "name": "Twitter__BearerToken",
+              "value": ""
+            },
+            {
+              "name": "Twitter__AccessToken",
+              "value": "[parameters('twitterAccessToken')]"
+            },
+            {
+              "name": "Twitter__AccessTokenSecret",
+              "value": "[parameters('twitterAccessTokenSecret')]"
+            },
+            {
+              // For Bot Framework
+              // https://docs.microsoft.com/ja-jp/azure/bot-service/bot-builder-telemetry?view=azure-bot-service-4.0&tabs=csharp
+              "name": "ApplicationInsights__InstrumentationKey",
+              "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components/', variables('webAppName')), '2018-05-01-preview').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+              "value": "~2"
+            }
+          ],
+          "cors": {
+            "allowedOrigins": [
+              "https://botservice.hosting.portal.azure.net",
+              "https://hosting.onecloud.azure-test.net/"
+            ]
+          },
+          "webSocketsEnabled": true
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-12-01",
+      "type": "Microsoft.BotService/botServices",
+      "name": "[parameters('botId')]",
+      "location": "global",
+      "kind": "bot",
+      "sku": {
+        "name": "[parameters('botSku')]"
+      },
+      "properties": {
+        "name": "[parameters('botId')]",
+        "displayName": "[parameters('botId')]",
+        "endpoint": "[variables('botEndpoint')]",
+        "msaAppId": "[parameters('appId')]",
+        "developerAppInsightsApplicationId": "[concat(variables('webAppName'),'Bot')]",
+        "developerAppInsightKey": "[reference(resourceId('microsoft.insights/components', concat(variables('webAppName'),'Bot')), '2018-05-01-preview').InstrumentationKey]",
+        "publishingCredentials": null,
+        "storageResourceId": null,
+        "iconUrl": "[concat(parameters('baseUrl'), 'images/icon_400x400.png')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
+      ]
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "kind": "",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('functionAppPlanName')]",
+      "properties": {
+        "name": "[variables('functionAppPlanName')]"
+      },
+      "sku": {
+        "Tier": "Dynamic",
+        "Name": "Y1"
+      },
+      "type": "Microsoft.Web/serverfarms"
+    },
+    {
+      "name": "[parameters('functionAppName')]",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-11-01",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.BotService/botServices/', parameters('botId'))]",
+        "[resourceId('microsoft.insights/components', parameters('functionAppName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionAppPlanName'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+            },
+            {
+              "name": "DirectLineSecret",
+              "value": "[listChannelWithKeys(resourceId('Microsoft.BotService/botServices/channels', parameters('botId'), 'DirectLineChannel'), '2018-07-12').properties.properties.sites[0].key]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~3"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components', parameters('functionAppName')), '2018-05-01-preview').InstrumentationKey]"
+            },
+            {
+              "name": "IoTHubEventHubsName",
+              "value": "[parameters('ioTHubEventHubsName')]"
+            },
+            {
+              "name": "IoTHubEventHubsConnectionString",
+              "value": "[parameters('ioTHubEventHubsConnectionString')]"
+            },
+            {
+              // これはlistkeysで取ることもできる
+              "name": "IoTHubConnectionString",
+              "value": "[parameters('ioTHubConnectionString')]"
+            },
+            {
+              "name": "IoTHubRealDiceEdgeDeviceId",
+              "value": "[parameters('ioTHubRealDiceEdgeDeviceId')]"
+            },
+            {
+              "name": "IoTHubRealDiceEdgeModuleId",
+              "value": "RealDiceEdgeModule"
+            },
+            {
+              "name": "ResultContainerBaseUri",
+              "value": "[parameters('resultContainerBaseUri')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2020-07-10-preview",
+      "type": "Microsoft.Devices/IotHubs",
+      "name": "[variables('hubname')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "eventHubEndpoints": {
+          "events": {
+            "retentionTimeInDays": 1,
+            // https://docs.microsoft.com/ja-jp/azure/event-hubs/event-hubs-faq#how-many-partitions-do-i-need
+            // 最小で良いので2
+            "partitionCount": 2
+          }
+        }
+      },
+      "sku": {
+        "name": "F1",
+        "capacity": "1"
+      },
+      "tags": {}
+    }
+  ]
 }

@@ -74,68 +74,26 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.RealDiceCameraModule.arm32v7}",
-              "createOptions":  {
+              "createOptions": {
                 "HostConfig": {
                   "Binds": [
                     "/var/realdice/video:/var/realdice/video",
                     "/var/realdice/photo:/var/realdice/photo",
                     "/dev/vchiq:/dev/vchiq",
-                    "/dev/video0:/dev/video0",
-                    "/dev/video10:/dev/video10",
-                    "/dev/video11:/dev/video11",
-                    "/dev/video12:/dev/video12",
-                    "/dev/video13:/dev/video13",
-                    "/dev/video14:/dev/video14",
-                    "/dev/video15:/dev/video15",
-                    "/dev/video16:/dev/video16"
+                    "/dev/video0:/dev/video0"
                   ],
                   "Devices": [
                     {
-                        "PathOnHost":"/dev/vchiq",
-                        "PathInContainer":"/dev/vchiq",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                          "PathOnHost":"/dev/video0",
-                          "PathInContainer":"/dev/video0",
-                          "CgroupPermissions":"mrw"
-                        },
-                      {
-                        "PathOnHost":"/dev/video10",
-                        "PathInContainer":"/dev/video10",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video11",
-                        "PathInContainer":"/dev/video11",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video12",
-                        "PathInContainer":"/dev/video12",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video13",
-                        "PathInContainer":"/dev/video13",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video14",
-                        "PathInContainer":"/dev/video14",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video15",
-                        "PathInContainer":"/dev/video15",
-                        "CgroupPermissions":"mrw"
-                      },
-                      {
-                        "PathOnHost":"/dev/video16",
-                        "PathInContainer":"/dev/video16",
-                        "CgroupPermissions":"mrw"
-                      }
-                                ]
+                      "PathOnHost": "/dev/vchiq",
+                      "PathInContainer": "/dev/vchiq",
+                      "CgroupPermissions": "mrw"
+                    },
+                    {
+                      "PathOnHost": "/dev/video0",
+                      "PathInContainer": "/dev/video0",
+                      "CgroupPermissions": "mrw"
+                    }
+                  ]
                 }
               }
             }

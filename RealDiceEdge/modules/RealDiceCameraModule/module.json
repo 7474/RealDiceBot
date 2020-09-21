@@ -1,10 +1,10 @@
 {
-    "$schema-version": "0.0.1",
+    "$schema-version": "0.1.0",
     "description": "",
     "image": {
         "repository": "$CONTAINER_REGISTRY_ADDRESS/realdicecamera",
         "tag": {
-            "version": "0.0.2",
+            "version": "0.0.4",
             "platforms": {
                 "arm32v7": "./Dockerfile.arm32v7"
             }

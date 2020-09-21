@@ -1,3 +1,5 @@
+using Swan;
+
 namespace RealDiceCameraModule
 {
     using System;
@@ -13,10 +15,14 @@ namespace RealDiceCameraModule
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Newtonsoft.Json;
     using RealDiceCommon;
+    using Unosquare.RaspberryIO;
+    using Unosquare.RaspberryIO.Camera;
 
     class Program
     {
         static HttpRouter http;
+        static readonly string videoDir = "/var/realdice/video";
+        static readonly string photoDir = "/var/realdice/photo";
 
         static void Main(string[] args)
         {
@@ -82,10 +88,25 @@ namespace RealDiceCameraModule
             var request = context.Request;
             var response = context.Response;
 
+            // XXX raspistill はビデオストリーム開いている時に使えないのでまだやらない
+            //var videoSetting = GetVideoSetting();
+            //Console.WriteLine($"videoSetting: {videoSetting.CreateProcessArguments()}");
+            //Pi.Camera.OpenVideoStream(videoSetting, OnVideoFrame, OnVideoComplete);
+
             response.StatusCode = (int)HttpStatusCode.NoContent;
             response.Close();
 
             return Task.CompletedTask;
+        }
+
+        static void OnVideoFrame(byte[] bytes)
+        {
+            Console.WriteLine($"OnVideoFrame: Frame bytes length = {bytes.Length}");
+        }
+
+        static void OnVideoComplete()
+        {
+            Console.WriteLine("OnVideoComplete");
         }
 
         //録画終了
@@ -93,6 +114,9 @@ namespace RealDiceCameraModule
         {
             var request = context.Request;
             var response = context.Response;
+
+            //// XXX 開いていなかった時とか、閉じられなかった時とか
+            //Pi.Camera.CloseVideoStream();
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentType = "application/json";
@@ -108,22 +132,55 @@ namespace RealDiceCameraModule
         }
 
         //静止画取得
-        static Task TakePhoto(HttpListenerContext context)
+        static async Task TakePhoto(HttpListenerContext context)
         {
             var request = context.Request;
             var response = context.Response;
+
+            var photoFileName = GetTimestampString() + ".jpg";
+            var filePath = Path.Combine(photoDir, photoFileName);
+            var photoSetting = GetPhotoSetting();
+            Console.WriteLine($"photoSetting: {photoSetting.CreateProcessArguments()}");
+            var photoBytes = await Pi.Camera.CaptureImageAsync(photoSetting);
+            File.WriteAllBytes(filePath, photoBytes);
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentType = "application/json";
             response.OutputStream.WriteString(JsonConvert.SerializeObject(
                 new
                 {
-                    PhotoFileName = "",
+                    PhotoFileName = photoFileName,
                 }
             ));
             response.Close();
+        }
 
-            return Task.CompletedTask;
+        static string GetTimestampString()
+        {
+            return DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff");
+        }
+
+        static CameraVideoSettings GetVideoSetting()
+        {
+            return new CameraVideoSettings()
+            {
+                CaptureTimeoutMilliseconds = 0,
+                CaptureDisplayPreview = false,
+                ImageFlipVertically = true,
+                CaptureExposure = CameraExposureMode.Night,
+                CaptureWidth = 640,
+                CaptureHeight = 480,
+            };
+        }
+        static CameraStillSettings GetPhotoSetting()
+        {
+            return new CameraStillSettings
+            {
+                CaptureWidth = 640,
+                CaptureHeight = 480,
+                CaptureJpegQuality = 90,
+                CaptureTimeoutMilliseconds = 300
+            };
         }
     }
 }

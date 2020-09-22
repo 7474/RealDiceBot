@@ -72,7 +72,11 @@
             },
             "settings": {
               "image": "${MODULES.RealDiceEdgeModule.arm32v7}",
-              "createOptions": {}
+              "createOptions": {
+                "HostConfig": {
+                  "Privileged": true
+                }
+              }
             }
           },
           "RealDiceCameraModule": {

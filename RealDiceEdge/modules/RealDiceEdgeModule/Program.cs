@@ -10,6 +10,7 @@ namespace RealDiceEdgeModule
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Device.Gpio;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -29,6 +30,11 @@ namespace RealDiceEdgeModule
         static HttpClient cognitiveClient;
         static ConcurrentQueue<RollRequestContext> rollRequestContexts;
         static BackgroundWorker rollRequestWorker;
+        // XXX GPIOを別モジュールに切り離す
+        const int GPIO_MOTAR_STBY = 17;
+        const int GPIO_MOTAR_AIN1 = 27;
+        const int GPIO_MOTAR_AIN2 = 22;
+        static GpioController gpioController;
 
         static void Main(string[] args)
         {
@@ -39,6 +45,9 @@ namespace RealDiceEdgeModule
             AssemblyLoadContext.Default.Unloading += (ctx) => cts.Cancel();
             Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
             WhenCancelled(cts.Token).Wait();
+            gpioController.ClosePin(GPIO_MOTAR_STBY);
+            gpioController.ClosePin(GPIO_MOTAR_AIN1);
+            gpioController.ClosePin(GPIO_MOTAR_AIN2);
             rollRequestWorker.CancelAsync();
         }
 
@@ -64,7 +73,7 @@ namespace RealDiceEdgeModule
             // Open a connection to the Edge runtime
             ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
             await ioTHubModuleClient.OpenAsync();
-            Console.WriteLine("IoT Hub module client initialized.");
+            WriteLog("IoT Hub module client initialized.");
 
             var connectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
             var containerName = Environment.GetEnvironmentVariable("RESULT_CONTAINER_NAME");
@@ -87,6 +96,14 @@ namespace RealDiceEdgeModule
             rollRequestWorker = new BackgroundWorker();
             rollRequestWorker.DoWork += RollRequestWorkerDoWork;
             rollRequestWorker.RunWorkerAsync();
+
+            gpioController = new GpioController();
+            gpioController.OpenPin(GPIO_MOTAR_STBY, PinMode.Output);
+            gpioController.OpenPin(GPIO_MOTAR_AIN1, PinMode.Output);
+            gpioController.OpenPin(GPIO_MOTAR_AIN2, PinMode.Output);
+            gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
+            gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
+            gpioController.Write(GPIO_MOTAR_AIN2, PinValue.Low);
         }
 
         private static void RollRequestWorkerDoWork(object sender, DoWorkEventArgs e)
@@ -107,7 +124,7 @@ namespace RealDiceEdgeModule
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    WriteLog(ex.Message);
                 }
             }
         }
@@ -116,7 +133,7 @@ namespace RealDiceEdgeModule
         {
             try
             {
-                Console.WriteLine($"Exec Roll {methodRequest.DataAsJson}");
+                WriteLog($"Exec Roll {methodRequest.DataAsJson}");
                 // 完了を待たずに受付した旨を返す
                 rollRequestContexts.Enqueue(new RollRequestContext
                 {
@@ -131,8 +148,8 @@ namespace RealDiceEdgeModule
             catch (Exception ex)
             {
                 // XXX 例外のハンドリング具合が分からん。
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
+                WriteLog(ex.Message);
+                WriteLog(ex.StackTrace);
                 throw;
             }
         }
@@ -141,36 +158,51 @@ namespace RealDiceEdgeModule
         {
             try
             {
-                Console.WriteLine($"Start RollInternal {methodRequest.DataAsJson}");
+                WriteLog($"Start RollInternal {methodRequest.DataAsJson}");
 
                 var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
 
                 //キャプション設定
+                WriteLog($"reqCaption");
                 var reqCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
-                Console.WriteLine($"reqCaptionResult: {reqCaptionResult.StatusCode}");
+                WriteLog($"reqCaptionResult: {reqCaptionResult.StatusCode}");
 
                 //録画開始
+                WriteLog($"recStart");
                 var recStartResult = await cameraClient.PostAsync("/video/start", new StringContent(""));
-                Console.WriteLine($"recStartResult: {recStartResult.StatusCode}");
+                WriteLog($"recStartResult: {recStartResult.StatusCode}");
 
                 //ダイスオン
-                // TODO 実装する
+                WriteLog($"gpio start");
+                gpioController.Write(GPIO_MOTAR_STBY, PinValue.High);
+                gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
+                gpioController.Write(GPIO_MOTAR_AIN2, PinValue.High);
 
                 // 回す時間分だけ待つ。
-                await Task.Delay(randomizer.Next(300, 800));
+                await Task.Delay(randomizer.Next(1500, 2500));
 
                 //ダイスオフ
-                // TODO 実装する
+                gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
+                gpioController.Write(GPIO_MOTAR_AIN2, PinValue.Low);
+                await Task.Delay(100);
+                gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
+                WriteLog($"gpio end");
+                // 止まる見込みまで待つ。
+                // XXX ビデオで停止を認識できるとカッコいい。
+                // 動体がなければいいので比較的平易にできるはず。
+                await Task.Delay(700);
 
                 //静止画取得
+                WriteLog($"takePhoto");
                 var takePhotoResult = await cameraClient.PostAsync("/photo", new StringContent(""));
-                Console.WriteLine($"takePhotoResult: {takePhotoResult.StatusCode}");
+                WriteLog($"takePhotoResult: {takePhotoResult.StatusCode}");
                 var takePhotoResultStr = await takePhotoResult.Content.ReadAsStringAsync();
-                Console.WriteLine($"    {takePhotoResultStr}");
+                WriteLog($"    {takePhotoResultStr}");
                 dynamic takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
                 string photoFileName = takePhotoResultObj.PhotoFileName;
 
                 //静止画認識
+                WriteLog($"cognitive");
                 int rollResult = randomizer.Next(1, 6);
                 double rollResultScore = 0.0;
                 string resultStatus = "Error";
@@ -184,9 +216,9 @@ namespace RealDiceEdgeModule
                 };
                 cognitiveRequestContent.Add(imageDataContent, "imageData", Path.GetFileName(photoFileName));
                 var cognitiveResult = await cognitiveClient.PostAsync("/image", cognitiveRequestContent);
-                Console.WriteLine($"cognitiveResult: {cognitiveResult.StatusCode}");
+                WriteLog($"cognitiveResult: {cognitiveResult.StatusCode}");
                 var cognitiveResultString = await cognitiveResult.Content.ReadAsStringAsync();
-                Console.WriteLine(cognitiveResultString);
+                WriteLog(cognitiveResultString);
                 if (cognitiveResult.StatusCode == HttpStatusCode.OK)
                 {
                     // TODO 型を付ける
@@ -211,14 +243,17 @@ namespace RealDiceEdgeModule
                 }
 
                 //キャプション設定
+                WriteLog($"resCaption");
                 var resCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
-                Console.WriteLine($"resCaptionResult: {resCaptionResult.StatusCode}");
+                WriteLog($"resCaptionResult: {resCaptionResult.StatusCode}");
 
                 //録画終了
+                WriteLog($"recEnd");
                 var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
-                Console.WriteLine($"recEndResult: {recEndResult.StatusCode}");
+                WriteLog($"recEndResult: {recEndResult.StatusCode}");
 
                 //ダイスロール応答メッセージ
+                WriteLog($"resMessage");
                 var res = new RollResponse
                 {
                     Id = req.Id,
@@ -234,15 +269,32 @@ namespace RealDiceEdgeModule
                         JsonConvert.SerializeObject(res)
                     )
                 ));
-                Console.WriteLine($"End RollInternal {methodRequest.DataAsJson}");
+                WriteLog($"resMessageEnd");
+
+                WriteLog($"End RollInternal {methodRequest.DataAsJson}");
             }
             catch (Exception ex)
             {
                 // XXX 例外のハンドリング具合が分からん。
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
+                WriteLog(ex.Message);
+                WriteLog(ex.StackTrace);
                 throw;
             }
+            finally
+            {
+                try
+                {
+                    gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
+                }
+                catch { }
+            }
+        }
+
+        static void WriteLog(string message)
+        {
+            Console.WriteLine(
+                "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff") + "]"
+                + " " + message);
         }
     }
 

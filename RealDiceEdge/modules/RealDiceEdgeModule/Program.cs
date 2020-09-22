@@ -2,13 +2,19 @@ namespace RealDiceEdgeModule
 {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Microsoft.Azure.Storage;
+    using Microsoft.Azure.Storage.Blob;
     using Newtonsoft.Json;
     using RealDiceEdgeModule.Models;
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
@@ -18,6 +24,7 @@ namespace RealDiceEdgeModule
     {
         static Random randomizer = new Random();
         // XXX userContextで取りまわした方が良い？
+        static CloudBlobContainer cloudBlobContainer;
         static HttpClient cameraClient;
         static HttpClient cognitiveClient;
         static ConcurrentQueue<RollRequestContext> rollRequestContexts;
@@ -59,13 +66,19 @@ namespace RealDiceEdgeModule
             await ioTHubModuleClient.OpenAsync();
             Console.WriteLine("IoT Hub module client initialized.");
 
+            var connectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            var containerName = Environment.GetEnvironmentVariable("RESULT_CONTAINER_NAME");
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var cloudBlobClient = storageAccount.CreateCloudBlobClient();
+            cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+
             cameraClient = new HttpClient()
             {
                 BaseAddress = new Uri("http://RealDiceCameraModule/"),
             };
             cognitiveClient = new HttpClient()
             {
-                BaseAddress = new Uri("http://RealDiceCognitiveModule/"),
+                BaseAddress = new Uri("http://RealDiceCognitivePyModule/"),
             };
             rollRequestContexts = new ConcurrentQueue<RollRequestContext>();
 
@@ -158,16 +171,43 @@ namespace RealDiceEdgeModule
                 string photoFileName = takePhotoResultObj.PhotoFileName;
 
                 //静止画認識
-                var rollResult = randomizer.Next(1, 6);
-                var cognitiveResult = await cognitiveClient.PostAsync("/cognitive", new StringContent(""));
+                int rollResult = randomizer.Next(1, 6);
+                double rollResultScore = 0.0;
+                string resultStatus = "Error";
+                var blob = cloudBlobContainer.GetBlockBlobReference(photoFileName);
+                var cognitiveRequestContent = new MultipartFormDataContent();
+                var imageDataContent = new StreamContent(await blob.OpenReadAsync());
+                imageDataContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "imageData",
+                    FileName = Path.GetFileName(photoFileName),
+                };
+                cognitiveRequestContent.Add(imageDataContent, "imageData", Path.GetFileName(photoFileName));
+                var cognitiveResult = await cognitiveClient.PostAsync("/image", cognitiveRequestContent);
+                Console.WriteLine($"cognitiveResult: {cognitiveResult.StatusCode}");
+                var cognitiveResultString = await cognitiveResult.Content.ReadAsStringAsync();
+                Console.WriteLine(cognitiveResultString);
                 if (cognitiveResult.StatusCode == HttpStatusCode.OK)
                 {
-                    var rollResultString = await cognitiveResult.Content.ReadAsStringAsync();
-                    Console.WriteLine(rollResultString);
-
                     // TODO 型を付ける
-                    dynamic rollResultJson = JsonConvert.DeserializeObject(rollResultString);
-                    rollResult = rollResultJson.Result;
+                    dynamic rollResultJson = JsonConvert.DeserializeObject(cognitiveResultString);
+                    IList<dynamic> predictions = rollResultJson.predictions.ToObject<List<dynamic>>();
+                    if (predictions.Any())
+                    {
+                        var prediction = predictions[0];
+                        string labelName = prediction.tagName;
+                        int labelResult;
+                        if (int.TryParse(new string(labelName.TakeLast(1).ToArray()), out labelResult))
+                        {
+                            rollResult = labelResult;
+                            rollResultScore = prediction.probability;
+                            resultStatus = "Success";
+                        }
+                    }
+                    else
+                    {
+                        resultStatus = "UnRecognized";
+                    }
                 }
 
                 //キャプション設定
@@ -178,14 +218,13 @@ namespace RealDiceEdgeModule
                 var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
                 Console.WriteLine($"recEndResult: {recEndResult.StatusCode}");
 
-                //ファイルアップロード
-                // TODO 実装する
-
                 //ダイスロール応答メッセージ
                 var res = new RollResponse
                 {
                     Id = req.Id,
+                    Status = resultStatus,
                     Result = rollResult,
+                    Score = rollResultScore,
                     PhotoName = photoFileName,
                     VideoName = req.Id + ".mp4",
                 };

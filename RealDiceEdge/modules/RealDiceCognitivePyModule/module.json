@@ -2,9 +2,9 @@
     "$schema-version": "0.0.1",
     "description": "",
     "image": {
-        "repository": "$CONTAINER_REGISTRY_ADDRESS/realdiceedge",
+        "repository": "$CONTAINER_REGISTRY_ADDRESS/realdicecognitivepy",
         "tag": {
-            "version": "0.4.6",
+            "version": "0.0.1",
             "platforms": {
                 "arm32v7": "./Dockerfile.arm32v7"
             }
@@ -12,5 +12,5 @@
         "buildOptions": [],
         "contextPath": "./"
     },
-    "language": "csharp"
+    "language": "python"
 }

@@ -104,7 +104,7 @@ namespace RealDiceBot.Bots
                     var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
                     var message =
                         $"1d6 = {res.Results[0].Results[0]} !\n" +
-                        "（ダイスは回っておらず。出目は疑似乱数）\n" + 
+                        $"(Score: {res.Results[0].Score})（ダイスは回ってない）\n" +
                         $"> {continueConversationActivity.Text}";
 
                     var activity = MessageFactory.Text(message);

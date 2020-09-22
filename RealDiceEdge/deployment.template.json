@@ -62,6 +62,14 @@
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
+            "env": {
+              "STORAGE_CONNECTION_STRING": {
+                "value": "DefaultEndpointsProtocol=http;BlobEndpoint=http://BlobStorageService:11002/realdicelocalstorage;AccountName=realdicelocalstorage;AccountKey=wxn0QgCIIbVh4xdWarmnhg==;"
+              },
+              "RESULT_CONTAINER_NAME": {
+                "value": "realdiceresults"
+              }
+            },
             "settings": {
               "image": "${MODULES.RealDiceEdgeModule.arm32v7}",
               "createOptions": {}
@@ -113,6 +121,16 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.RealDiceCognitiveModule.arm32v7}",
+              "createOptions": {}
+            }
+          },
+          "RealDiceCognitivePyModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RealDiceCognitivePyModule.arm32v7}",
               "createOptions": {}
             }
           },
@@ -169,7 +187,7 @@
         "deviceAutoDeleteProperties": {
           "deleteOn": true,
           "deleteAfterMinutes": 5,
-          "retainWhileUploading": false
+          "retainWhileUploading": true
         },
         "deviceToCloudUploadProperties": {
           "uploadOn": true,
@@ -180,7 +198,7 @@
               "target": "realdiceresults"
             }
           },
-          "deleteAfterUpload": true
+          "deleteAfterUpload": false
         }
       }
     }

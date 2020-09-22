@@ -107,6 +107,8 @@ namespace RealDiceFunctions
             var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);
             rollContext.Results = rollContext.Requests.Select(x => new RollResult
             {
+                Status = res.Status,
+                Score = res.Score,
                 Results = new uint[] { (uint)res.Result },
                 PhotoUrl = string.IsNullOrEmpty(res.PhotoName) ? null : photoUrl.ToString(),
             }).ToList();

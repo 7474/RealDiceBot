@@ -2,7 +2,7 @@
 
 6面ダイスを1つ振って応答するだけのボットです。
 
-電動ダイスをAzure IoT EdgeデバイスのRaspberry Pi 3で制御して写真を撮っています。出目の判断もRaspberry Pi上で行っています。特に2と3の判断が甘いです。
+電動ダイスをAzure IoT EdgeデバイスのRaspberry Pi 3で制御して写真を撮っています。出目の判断もRaspberry Pi上で行っています。2と3の判断が甘いです。
 
 ## Twitter@RealDiceBot
 

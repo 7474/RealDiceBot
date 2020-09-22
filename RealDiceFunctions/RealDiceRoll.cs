@@ -72,6 +72,7 @@ namespace RealDiceFunctions
             res.Results = req.Requests.Select(x => new RollResult
             {
                 Request = x,
+                Status = "Offline",
                 Results = Enumerable.Range(0, (int)x.N).Select(x => (uint)randomizer.Next(1, 7)).ToArray(),
             }).ToList();
             await rollQueue.AddAsync(res);
@@ -107,10 +108,12 @@ namespace RealDiceFunctions
             var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);
             rollContext.Results = rollContext.Requests.Select(x => new RollResult
             {
+                Request = x,
                 Status = res.Status,
                 Score = res.Score,
                 Results = new uint[] { (uint)res.Result },
                 PhotoUrl = string.IsNullOrEmpty(res.PhotoName) ? null : photoUrl.ToString(),
+                VideoUrl = null,
             }).ToList();
 
             await SendResult(rollContext);

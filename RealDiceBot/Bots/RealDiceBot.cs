@@ -102,13 +102,20 @@ namespace RealDiceBot.Bots
                 {
                     logger.LogInformation(continueConversationActivity.Value as string);
                     var res = RealDiceConverter.Deserialize<RollContext>(continueConversationActivity.Value as string);
+                    var res0 = res.Results[0];
+                    string exMessage = "";
+                    if (res0.Status != "Success")
+                    {
+                        exMessage = $"({res0.Status})\n";
+                    }
                     var message =
-                        $"1d6 = {res.Results[0].Results[0]} !\n" +
-                        $"(Score: {res.Results[0].Score})（ダイスは回ってない）\n" +
+                        $"1d6 = {res0.Results[0]} !\n" +
+                        $"(Score: {res0.Score})\n" +
+                        exMessage +
                         $"> {continueConversationActivity.Text}";
 
                     var activity = MessageFactory.Text(message);
-                    activity.Attachments = GetAttachments(res.Results[0]);
+                    activity.Attachments = GetAttachments(res0);
 
                     await context.SendActivityAsync(activity, cancellationToken);
                 }, cancellationToken);

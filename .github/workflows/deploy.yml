@@ -7,7 +7,9 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: './RealDiceBot'
   AZURE_FUNCTIONAPP_NAME: RealDiceBotFunctions
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './RealDiceFunctions'
-  DOTNET_VERSION: '3.1'
+  DOTNET_VERSION: '3.1.402'
+  # XXX なんかセットアップに失敗するので 3.1 指定でなくフルに指定してみる
+  # https://github.com/7474/RealDiceBot/runs/1149140756?check_suite_focus=true#step:3:10
 
 jobs:
   build-and-deploy:

@@ -1,0 +1,55 @@
+FROM microsoft/dotnet:2.1-sdk AS build-env
+WORKDIR /app
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish -c Release -o out RealDiceCameraCvModule.csproj
+
+FROM microsoft/dotnet:2.1-runtime-stretch-slim-arm32v7
+# Install OpenCV
+# Ref. https://qiita.com/wk_/items/8db529a6b24a955888db
+RUN apt update \
+    && apt -y install build-essential \
+    && apt -y install cmake \
+    && apt -y install libeigen3-dev \
+    && apt -y install libgtk-3-dev \
+    && apt -y install qt5-default \
+    && apt -y install libvtk7-qt-dev \
+    && apt -y install freeglut3-dev \
+    && apt -y install libtbb-dev \
+    && apt -y install libjpeg-dev \
+    && apt -y install libopenjp2-7-dev \
+    && apt -y install libpng++-dev \
+    && apt -y install libtiff-dev \
+    && apt -y install libopenexr-dev \
+    && apt -y install libwebp-dev \
+    && apt -y install libavresample-dev \
+    && apt -y install libhdf5-dev \
+    && apt -y install git \
+    && apt clean
+
+RUN cd && mkdir opencv4 && cd opencv4 \
+    && git clone https://github.com/opencv/opencv.git \
+    && git clone https://github.com/opencv/opencv_contrib.git \
+    && cd opencv \
+    && mkdir build \
+    && cd build \
+    && cmake \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D OPENCV_EXTRA_MODULES_PATH=/usr/local/opencv4/opencv_contrib/modules \
+    -S ../ \
+    && make -j7 \
+    && make install \
+    && cd && -rf ./opencv4
+
+WORKDIR /app
+COPY --from=build-env /app/out ./
+
+EXPOSE 80
+# XXX Bind port 80
+# RUN useradd -ms /bin/bash moduleuser
+# USER moduleuser
+ENTRYPOINT ["dotnet", "RealDiceCameraCvModule.dll"]

@@ -16,7 +16,8 @@ namespace RealDiceCameraCvModule
         public VideoInputStream(string path)
         {
             frameQueue = new ConcurrentQueue<Mat>();
-            videoCapture = new VideoCapture(path);
+            // XXX Test video selecto
+            videoCapture = new VideoCapture(0);
             worker = new BackgroundWorker();
             worker.WorkerSupportsCancellation = true;
             worker.DoWork += Update;
@@ -29,6 +30,7 @@ namespace RealDiceCameraCvModule
                 videoCapture.Release();
                 videoCapture.Dispose();
             }
+            worker.DoWork -= Update;
         }
 
         private void Update(object sender, DoWorkEventArgs e)
@@ -36,6 +38,7 @@ namespace RealDiceCameraCvModule
             var worker = sender as BackgroundWorker;
             while (true)
             {
+                Console.WriteLine(DateTime.Now + " " + "loop Start");
                 if (worker.CancellationPending)
                 {
                     return;
@@ -44,16 +47,20 @@ namespace RealDiceCameraCvModule
                 Mat image = new Mat();
                 if (!videoCapture.Read(image))
                 {
+                    Console.WriteLine(DateTime.Now + " " + "loop Read false");
                     Stop();
                     return;
                 }
+                Console.WriteLine(DateTime.Now + " " + "loop Read true");
 
                 frameQueue.Enqueue(image);
                 // 最新のフレームだけを保持する
-                while (frameQueue.Count > 2)
+                while (frameQueue.Count > 1)
                 {
+                    Console.WriteLine(DateTime.Now + " " + "loop Count > 1");
                     Read();
                 }
+                Console.WriteLine(DateTime.Now + " " + "loop End");
             }
         }
 

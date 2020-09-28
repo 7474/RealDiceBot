@@ -45,6 +45,7 @@ namespace RealDiceCameraCvModule
             {
                 videoWriter.Dispose();
             }
+            frameTimer.Elapsed -= WriteFrame;
         }
 
         public void Start()

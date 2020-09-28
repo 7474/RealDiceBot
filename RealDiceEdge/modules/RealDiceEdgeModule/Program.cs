@@ -184,7 +184,7 @@ namespace RealDiceEdgeModule
                 gpioController.Write(GPIO_MOTAR_AIN2, PinValue.High);
 
                 // 回す時間分だけ待つ。
-                await Task.Delay(randomizer.Next(1500, 2500));
+                await Task.Delay(randomizer.Next(1500, 2000));
 
                 //ダイスオフ
                 gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
@@ -195,7 +195,7 @@ namespace RealDiceEdgeModule
                 // 止まる見込みまで待つ。
                 // XXX ビデオで停止を認識できるとカッコいい。
                 // 動体がなければいいので比較的平易にできるはず。
-                await Task.Delay(700);
+                await Task.Delay(1000);
 
                 //静止画取得
                 WriteLog($"takePhoto");
@@ -255,6 +255,20 @@ namespace RealDiceEdgeModule
                         Caption = $"1d6 = {rollResult} ! (Score: {rollResultScore})",
                     })));
                 WriteLog($"resCaptionResult: {resCaptionResult.StatusCode}");
+
+                // XXX
+                try
+                {
+                    WriteLog($"takePhotoWithCaption");
+                    takePhotoResult = await cameraClient.PostAsync("/photo_with_caption", new StringContent(""));
+                    WriteLog($"takePhotoWithCaptionResult: {takePhotoResult.StatusCode}");
+                    takePhotoResultStr = await takePhotoResult.Content.ReadAsStringAsync();
+                    WriteLog($"    {takePhotoResultStr}");
+                    takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
+                    photoFileName = takePhotoResultObj.PhotoFileName;
+                }
+                catch { }
+
                 await Task.Delay(1000);
 
                 //録画終了

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Timers;
 
@@ -21,20 +22,23 @@ namespace RealDiceCameraCvModule
             FileName = fileName;
             frameQueue = new ConcurrentQueue<Mat>();
             videoWriter = new VideoWriter(fileName, fourcc, fps, frameSize, isColor);
-            frameTimer = new Timer(1.0 / fps);
+            frameTimer = new Timer(1000.0 / fps);
             frameTimer.Elapsed += WriteFrame;
         }
 
         private void WriteFrame(object sender, ElapsedEventArgs e)
         {
+            WriteLog("WriteFrame");
             Mat image = Read();
             if (image != null)
             {
+                WriteLog("  image");
                 lastFrame = image;
                 videoWriter.Write(image);
             }
             else if (lastFrame != null)
             {
+                WriteLog("  lastFrame");
                 videoWriter.Write(lastFrame);
             }
         }
@@ -79,6 +83,13 @@ namespace RealDiceCameraCvModule
 
             // 成否に関らず返す。
             return image;
+        }
+
+        static void WriteLog(string message)
+        {
+            Console.WriteLine(
+                "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff") + "]"
+                + " " + message);
         }
     }
 }

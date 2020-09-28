@@ -3,7 +3,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RealDiceCameraCvModule
 {
@@ -12,12 +16,16 @@ namespace RealDiceCameraCvModule
         private BackgroundWorker worker;
         private VideoCapture videoCapture;
         private ConcurrentQueue<Mat> frameQueue;
+        private int desireFps;
+        private Stopwatch stopwatch;
 
-        public VideoInputStream(string path)
+        public VideoInputStream(int videoIndex)
         {
+            desireFps = 15;
+            stopwatch = new Stopwatch();
+            stopwatch.Start();
             frameQueue = new ConcurrentQueue<Mat>();
-            // XXX Test video selecto
-            videoCapture = new VideoCapture(0);
+            videoCapture = new VideoCapture(videoIndex);
             worker = new BackgroundWorker();
             worker.WorkerSupportsCancellation = true;
             worker.DoWork += Update;
@@ -36,9 +44,10 @@ namespace RealDiceCameraCvModule
         private void Update(object sender, DoWorkEventArgs e)
         {
             var worker = sender as BackgroundWorker;
+            var loopStart = stopwatch.ElapsedMilliseconds;
             while (true)
             {
-                Console.WriteLine(DateTime.Now + " " + "loop Start");
+                //WriteLog("loop Start");
                 if (worker.CancellationPending)
                 {
                     return;
@@ -47,20 +56,24 @@ namespace RealDiceCameraCvModule
                 Mat image = new Mat();
                 if (!videoCapture.Read(image))
                 {
-                    Console.WriteLine(DateTime.Now + " " + "loop Read false");
+                    WriteLog("loop Read false");
                     Stop();
                     return;
                 }
-                Console.WriteLine(DateTime.Now + " " + "loop Read true");
+                //WriteLog("loop Read true");
 
                 frameQueue.Enqueue(image);
                 // 最新のフレームだけを保持する
-                while (frameQueue.Count > 1)
+                while (frameQueue.Count > 2)
                 {
-                    Console.WriteLine(DateTime.Now + " " + "loop Count > 1");
+                    //WriteLog("loop Count > 1");
                     Read();
                 }
-                Console.WriteLine(DateTime.Now + " " + "loop End");
+                var sleepMillis = 1000 / desireFps - (stopwatch.ElapsedMilliseconds - loopStart);
+                loopStart = stopwatch.ElapsedMilliseconds;
+                WriteLog($"loop End. Delay s {stopwatch.ElapsedMilliseconds} {sleepMillis}");
+                Task.Delay((int)Math.Min(1000 / desireFps, Math.Max(0, sleepMillis))).Wait();
+                WriteLog($"loop End. Delay e {stopwatch.ElapsedMilliseconds} {stopwatch.ElapsedMilliseconds - loopStart}");
             }
         }
 
@@ -81,6 +94,13 @@ namespace RealDiceCameraCvModule
 
             // 成否に関らず返す。
             return image;
+        }
+
+        static void WriteLog(string message)
+        {
+            Console.WriteLine(
+                "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff") + "]"
+                + " " + message);
         }
     }
 }

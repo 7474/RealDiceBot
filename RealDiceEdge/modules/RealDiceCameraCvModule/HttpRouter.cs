@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -87,6 +87,14 @@ namespace RealDiceCommon
             using (var writer = new StreamWriter(stream))
             {
                 writer.Write(value);
+            }
+        }
+
+        public static string ReadString(this Stream stream)
+        {
+            using (var reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
             }
         }
     }

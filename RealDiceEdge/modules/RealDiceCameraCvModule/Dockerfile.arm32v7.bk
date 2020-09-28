@@ -1,0 +1,39 @@
+FROM microsoft/dotnet:2.1-sdk AS build-env
+WORKDIR /app
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish -c Release -o out RealDiceCameraCvModule.csproj
+
+FROM microsoft/dotnet:2.1-runtime-stretch-slim-arm32v7
+# XXX libopencv-dev 2.4.9 で古すぎた。。。
+#
+RUN apt update \
+    && apt install -y libopencv-dev \
+    && apt clean
+
+# https://github.com/shimat/opencvshar#
+# For Build OpenCvSharpExtern
+RUN apt update \
+    && apt install -y git \
+    && apt install -y cmake \
+    && apt clean
+
+# Build OpenCvSharpExtern
+RUN cd && git clone https://github.com/shimat/opencvsharp.git \
+    && cd opencvsharp/src \
+    && mkdir build && cd build \
+    && cmake -D CMAKE_INSTALL_PREFIX=/usr/include/ .. \
+    && make -j \
+    && make install \
+    && cp OpenCvSharpExtern/libOpenCvSharpExtern.so /usr/local/lib
+# cd && rm -rf opencvsharp
+# apt remove git && apt remove cmake
+
+WORKDIR /app
+COPY --from=build-env /app/out ./
+
+EXPOSE 80
+ENTRYPOINT ["dotnet", "RealDiceCameraCvModule.dll"]

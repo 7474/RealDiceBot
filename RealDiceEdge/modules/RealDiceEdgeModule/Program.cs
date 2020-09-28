@@ -161,10 +161,15 @@ namespace RealDiceEdgeModule
                 WriteLog($"Start RollInternal {methodRequest.DataAsJson}");
 
                 var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
+                string reqMessage = req.Message;
 
                 //キャプション設定
                 WriteLog($"reqCaption");
-                var reqCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                var reqCaptionResult = await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = reqMessage,
+                    })));
                 WriteLog($"reqCaptionResult: {reqCaptionResult.StatusCode}");
 
                 //録画開始
@@ -244,13 +249,24 @@ namespace RealDiceEdgeModule
 
                 //キャプション設定
                 WriteLog($"resCaption");
-                var resCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                var resCaptionResult = await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = $"1d6 = {rollResult} ! (Score: {rollResultScore})",
+                    })));
                 WriteLog($"resCaptionResult: {resCaptionResult.StatusCode}");
+                await Task.Delay(1000);
 
                 //録画終了
                 WriteLog($"recEnd");
                 var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
                 WriteLog($"recEndResult: {recEndResult.StatusCode}");
+
+                //await cameraClient.PostAsync("caption",
+                //    new StringContent(JsonConvert.SerializeObject(new
+                //    {
+                //        Caption = "",
+                //    })));
 
                 //ダイスロール応答メッセージ
                 WriteLog($"resMessage");
@@ -275,7 +291,6 @@ namespace RealDiceEdgeModule
             }
             catch (Exception ex)
             {
-                // XXX 例外のハンドリング具合が分からん。
                 WriteLog(ex.Message);
                 WriteLog(ex.StackTrace);
                 throw;
@@ -285,6 +300,8 @@ namespace RealDiceEdgeModule
                 try
                 {
                     gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
+                    gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
+                    gpioController.Write(GPIO_MOTAR_AIN2, PinValue.Low);
                 }
                 catch { }
             }

@@ -5,6 +5,8 @@ namespace RealDiceCameraCvModule
     using Microsoft.Azure.Storage;
     using Microsoft.Azure.Storage.Blob;
     using Newtonsoft.Json;
+    using OpenCvSharp;
+    using OpenCvSharp.Extensions;
     using RealDiceCommon;
     using System;
     using System.IO;
@@ -12,16 +14,21 @@ namespace RealDiceCameraCvModule
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using OpenCvSharp;
+    using System.Timers;
 
     class Program
     {
         static HttpRouter http;
-        //static readonly string videoDir = "/var/realdice/video";
-        //static readonly string photoDir = "/var/realdice/photo";
+        static readonly string videoDir = "/var/realdice/video";
+        static double fps = 15;
         static CloudBlobContainer cloudBlobContainer;
-        static VideoStream videoStream;
+        static VideoInputStream videoInputStream;
+        static VideoOutputStream videoOutputStream;
+        static System.Timers.Timer frameTimer;
         static Mat lastFrame;
+        static Mat lastOriginalFrame;
+        static string caption;
+        static System.Drawing.Font captionFont;
 
         static void Main(string[] args)
         {
@@ -33,8 +40,8 @@ namespace RealDiceCameraCvModule
             Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
             WhenCancelled(cts.Token).Wait();
             http.Stop();
-            videoStream.Stop();
-            videoStream.Dispose();
+            videoInputStream.Stop();
+            videoInputStream.Dispose();
         }
 
         /// <summary>
@@ -69,8 +76,14 @@ namespace RealDiceCameraCvModule
             await cloudBlobContainer.CreateIfNotExistsAsync();
 
             // TODO 環境変数ないし論理的な固定パスに
-            videoStream = new VideoStream("/dev/video0");
-            videoStream.Start();
+            videoInputStream = new VideoInputStream("/dev/video0");
+            videoInputStream.Start();
+
+            caption = "";
+            captionFont = new System.Drawing.Font("noto", 10.5f);
+
+            frameTimer = new System.Timers.Timer(1.0 / fps);
+            frameTimer.Elapsed += UpdateFrame;
 
             http = new HttpRouter(new string[] { "http://+:80/" });
             http.Register("/caption", SetCaption);
@@ -87,23 +100,70 @@ namespace RealDiceCameraCvModule
         {
             var request = context.Request;
             var response = context.Response;
+            var requestJson = request.InputStream.ReadString();
+            var requestObj = JsonConvert.DeserializeObject<dynamic>(requestJson);
+
+            caption = requestObj.Caption;
 
             response.StatusCode = (int)HttpStatusCode.NoContent;
             response.Close();
 
             return Task.CompletedTask;
+        }
+
+        static void UpdateFrame(object sender, ElapsedEventArgs e)
+        {
+            var frame = videoInputStream.Read();
+            if (frame != null)
+            {
+                lastOriginalFrame = frame.Clone();
+
+                var frameSize = frame.Size();
+                Console.WriteLine($"{frameSize.Width}x{frameSize.Height}");
+                frame.Resize(GetOutputSize(frameSize));
+                if (!string.IsNullOrEmpty(caption))
+                {
+                    PutCaption(frame, caption, captionFont);
+                }
+                lastFrame = frame;
+            }
+        }
+
+        static void PutCaption(Mat image, string caption, System.Drawing.Font font)
+        {
+            var size = image.Size();
+            using (var bitmap = image.ToBitmap())
+            using (var g = System.Drawing.Graphics.FromImage(bitmap))
+            {
+                // XXX 見やすく描画する
+                var captionSize = g.MeasureString(caption, font);
+                g.DrawString(caption, font, System.Drawing.Brushes.Azure,
+                    size.Width - captionSize.Width / 2,
+                    size.Height - captionSize.Height - 4);
+                bitmap.ToMat().CopyTo(image);
+            }
         }
 
         //録画開始
         static Task StartRecording(HttpListenerContext context)
         {
+            if (videoOutputStream != null)
+            {
+                throw new ApplicationException("Already recording");
+            }
             var request = context.Request;
             var response = context.Response;
 
-            // XXX raspistill はビデオストリーム開いている時に使えないのでまだやらない
-            //var videoSetting = GetVideoSetting();
-            //Console.WriteLine($"videoSetting: {videoSetting.CreateProcessArguments()}");
-            //Pi.Camera.OpenVideoStream(videoSetting, OnVideoFrame, OnVideoComplete);
+            var videoName = GetTimestampString() + ".mp4";
+            var videoFilePath = Path.Combine(videoDir, videoName);
+            var frame = lastOriginalFrame != null
+                ? lastOriginalFrame
+                : videoInputStream.Read();
+
+            var frameSize = frame.Size();
+            Console.WriteLine($"{frameSize.Width}x{frameSize.Height}");
+            videoOutputStream = new VideoOutputStream(videoFilePath, FourCC.MPG4, 15, GetOutputSize(frameSize));
+            frameTimer.Start();
 
             response.StatusCode = (int)HttpStatusCode.NoContent;
             response.Close();
@@ -111,36 +171,42 @@ namespace RealDiceCameraCvModule
             return Task.CompletedTask;
         }
 
-        static void OnVideoFrame(byte[] bytes)
-        {
-            Console.WriteLine($"OnVideoFrame: Frame bytes length = {bytes.Length}");
-        }
-
-        static void OnVideoComplete()
-        {
-            Console.WriteLine("OnVideoComplete");
-        }
-
         //録画終了
-        static Task EndRecording(HttpListenerContext context)
+        static async Task EndRecording(HttpListenerContext context)
         {
             var request = context.Request;
             var response = context.Response;
+            var videoFileName = "";
 
-            //// XXX 開いていなかった時とか、閉じられなかった時とか
-            //Pi.Camera.CloseVideoStream();
+            if (videoOutputStream != null)
+            {
+                var filePath = videoOutputStream.FileName;
 
-            response.StatusCode = (int)HttpStatusCode.OK;
+                frameTimer.Stop();
+                videoOutputStream.Stop();
+                videoOutputStream.Close();
+                videoOutputStream = null;
+
+                videoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".jpg";
+                var blob = cloudBlobContainer.GetBlockBlobReference(videoFileName);
+                blob.Properties.ContentType = "video/mp4";
+                await blob.UploadFromFileAsync(filePath);
+                File.Delete(filePath);
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+            else
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+            }
+
             response.ContentType = "application/json";
             response.OutputStream.WriteString(JsonConvert.SerializeObject(
                 new
                 {
-                    VideoFileName = "",
+                    VideoFileName = videoFileName,
                 }
             ));
             response.Close();
-
-            return Task.CompletedTask;
         }
 
         //静止画取得
@@ -151,10 +217,8 @@ namespace RealDiceCameraCvModule
 
             var photoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".jpg";
 
-            // XXX とりあえず試しなのでフレームがあること前提
-            var frame = lastFrame != null
-                ? lastFrame
-                : videoStream.Read();
+            var frame = lastOriginalFrame.Clone();
+            frame.Resize(GetOutputSize(frame.Size()));
             var photoStream = new MemoryStream();
             frame.WriteToStream(photoStream, ".jpg");
             photoStream.Position = 0;
@@ -181,6 +245,10 @@ namespace RealDiceCameraCvModule
         static string GetTimestampString()
         {
             return DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff");
+        }
+        static Size GetOutputSize(Size frameSize)
+        {
+            return new Size(frameSize.Width / 4, frameSize.Height / 4);
         }
     }
 }

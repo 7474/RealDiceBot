@@ -7,13 +7,13 @@ using System.Text;
 
 namespace RealDiceCameraCvModule
 {
-    public class VideoStream : IDisposable
+    public class VideoInputStream : IDisposable
     {
         private BackgroundWorker worker;
         private VideoCapture videoCapture;
         private ConcurrentQueue<Mat> frameQueue;
 
-        public VideoStream(string path)
+        public VideoInputStream(string path)
         {
             frameQueue = new ConcurrentQueue<Mat>();
             videoCapture = new VideoCapture(path);
@@ -26,7 +26,7 @@ namespace RealDiceCameraCvModule
         {
             if (videoCapture != null && !videoCapture.IsDisposed)
             {
-                //videoCapture.Release();
+                videoCapture.Release();
                 videoCapture.Dispose();
             }
         }
@@ -49,6 +49,11 @@ namespace RealDiceCameraCvModule
                 }
 
                 frameQueue.Enqueue(image);
+                // 最新のフレームだけを保持する
+                while (frameQueue.Count > 2)
+                {
+                    Read();
+                }
             }
         }
 

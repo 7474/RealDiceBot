@@ -82,15 +82,6 @@ namespace RealDiceBot.Bots
             else
             {
                 var attachements = new List<Attachment>();
-                if (!string.IsNullOrEmpty(res.VideoUrl))
-                {
-                    attachements.Add(new Attachment
-                    {
-                        Name = Path.GetFileName(res.VideoUrl),
-                        ContentType = "video/x-msvideo",
-                        ContentUrl = res.VideoUrl,
-                    });
-                }
                 if (!string.IsNullOrEmpty(res.PhotoUrl))
                 {
                     attachements.Add(new Attachment
@@ -98,6 +89,15 @@ namespace RealDiceBot.Bots
                         Name = Path.GetFileName(res.PhotoUrl),
                         ContentType = "image/jpg",
                         ContentUrl = res.PhotoUrl,
+                    });
+                }
+                if (!string.IsNullOrEmpty(res.VideoUrl))
+                {
+                    attachements.Add(new Attachment
+                    {
+                        Name = Path.GetFileName(res.VideoUrl),
+                        ContentType = "video/x-msvideo",
+                        ContentUrl = res.VideoUrl,
                     });
                 }
 

@@ -25,8 +25,29 @@ namespace RealDiceCameraCvModule
         static VideoInputStream videoInputStream;
         static VideoOutputStream videoOutputStream;
         static System.Timers.Timer frameTimer;
-        static Mat lastFrame;
-        static Mat lastOriginalFrame;
+        // XXX ちゃんとやるならロックが要る
+        static Mat _lastFrame;
+        static Mat lastFrame
+        {
+            get { return _lastFrame?.Clone(); }
+            set
+            {
+                var x = _lastFrame;
+                _lastFrame = value;
+                x?.Dispose();
+            }
+        }
+        static Mat _lastOriginalFrame;
+        static Mat lastOriginalFrame
+        {
+            get { return _lastOriginalFrame?.Clone(); }
+            set
+            {
+                var x = _lastOriginalFrame;
+                _lastOriginalFrame = value;
+                x?.Dispose();
+            }
+        }
         static string caption;
         static System.Drawing.Font captionFont;
         static string videoExtension = ".avi";
@@ -119,25 +140,27 @@ namespace RealDiceCameraCvModule
             var frame = videoInputStream.Read();
             if (frame != null)
             {
+                WriteLog($"UpdateFrame");
                 lastOriginalFrame = frame.Clone();
 
-                var frameSize = frame.Size();
-                WriteLog($"UpdateFrame {frameSize.Width}x{frameSize.Height}");
                 if (frame.Size() != GetOutputSize(frame.Size()))
                 {
+                    var x = frame;
                     frame = frame.Resize(GetOutputSize(frame.Size()));
+                    x.Dispose();
                 }
-                WriteLog($"UpdateFrame {frame.Width}x{frame.Height}");
                 if (!string.IsNullOrEmpty(caption))
                 {
-                    //PutCaption(frame, caption, captionFont);
+                    var x = frame;
+                    frame = PutCaption(frame, caption, captionFont);
+                    x.Dispose();
                 }
+                videoOutputStream.Write(frame);
                 lastFrame = frame;
-                videoOutputStream.Write(frame.Clone());
             }
         }
 
-        static void PutCaption(Mat image, string caption, System.Drawing.Font font)
+        static Mat PutCaption(Mat image, string caption, System.Drawing.Font font)
         {
             WriteLog($"PutCaption {caption}");
             var size = image.Size();
@@ -148,7 +171,10 @@ namespace RealDiceCameraCvModule
                 g.DrawString(caption, font, System.Drawing.Brushes.Azure,
                     size.Width / 2 - captionSize.Width / 2,
                     size.Height - captionSize.Height - 4);
-                bitmap.ToMat(image);
+                // XXX なんかVideoCaputureしたMatに位置情報が入っている感じがする
+                var captionedImage = image.Clone();
+                bitmap.ToMat(captionedImage);
+                return captionedImage;
             }
         }
 
@@ -167,7 +193,7 @@ namespace RealDiceCameraCvModule
             var videoFilePath = Path.Combine(videoDir, videoName);
             WriteLog($"    {videoName}");
             Directory.CreateDirectory(Path.GetDirectoryName(videoFilePath));
-            var frame = lastOriginalFrame != null
+            var frame = _lastOriginalFrame != null
                 ? lastOriginalFrame
                 : videoInputStream.Read();
 
@@ -204,12 +230,12 @@ namespace RealDiceCameraCvModule
                 videoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + videoExtension;
                 WriteLog($"    {videoFileName}");
                 var blob = cloudBlobContainer.GetBlockBlobReference(videoFileName);
-                blob.Properties.ContentType = "video/mp4";
-                await blob.UploadFromFileAsync(filePath);
+                //blob.Properties.ContentType = "video/mp4";
+                blob.Properties.ContentType = "video/x-msvideo";
+                await blob.UploadFromStreamAsync(File.OpenRead(filePath));
                 WriteLog($"    UploadFromFileAsync end");
-                // XXX ファイル消すと死んでいる疑惑。
-                //File.Delete(filePath);
-                //WriteLog($"    File.Delete end");
+                File.Delete(filePath);
+                WriteLog($"    File.Delete end");
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
             else
@@ -244,9 +270,10 @@ namespace RealDiceCameraCvModule
 
         private static async Task TakePhotoInternal(HttpListenerResponse response, bool withCaption)
         {
+            WriteLog("TakePhotoInternal");
             var photoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".jpg";
 
-            var frame = withCaption ? lastFrame.Clone() : lastOriginalFrame.Clone();
+            var frame = withCaption ? lastFrame : lastOriginalFrame;
             if (frame.Size() != GetOutputSize(frame.Size()))
             {
                 frame = frame.Resize(GetOutputSize(frame.Size()));

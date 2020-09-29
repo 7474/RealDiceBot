@@ -1,10 +1,6 @@
 using OpenCvSharp;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Text;
 using System.Timers;
 
 namespace RealDiceCameraCvModule
@@ -33,12 +29,14 @@ namespace RealDiceCameraCvModule
             if (image != null)
             {
                 WriteLog("  image");
+                if (lastFrame != null) { lastFrame.Dispose(); }
                 lastFrame = image;
                 videoWriter.Write(image);
             }
             else if (lastFrame != null)
             {
                 WriteLog("  lastFrame");
+                // XXX どうもフレーム毎に位置情報が付加されている感じがする
                 videoWriter.Write(lastFrame);
             }
         }
@@ -69,10 +67,11 @@ namespace RealDiceCameraCvModule
 
         public void Write(Mat image)
         {
-            frameQueue.Enqueue(image);
+            frameQueue.Enqueue(image.Clone());
             while (frameQueue.Count > 2)
             {
-                Read();
+                var disposeImage = Read();
+                if (disposeImage != null) { disposeImage.Dispose(); }
             }
         }
 

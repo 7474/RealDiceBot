@@ -339,6 +339,9 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+#
+!IoTEdgeDevice/files/usr/local/bin
+
 # Local memo
 tmp/
 memo.md

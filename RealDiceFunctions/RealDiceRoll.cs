@@ -106,6 +106,7 @@ namespace RealDiceFunctions
 
             var containerUrl = Environment.GetEnvironmentVariable("ResultContainerBaseUri");
             var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);
+            var videoName = new Uri(new Uri(containerUrl), res.VideoName);
             rollContext.Results = rollContext.Requests.Select(x => new RollResult
             {
                 Request = x,
@@ -113,7 +114,7 @@ namespace RealDiceFunctions
                 Score = res.Score,
                 Results = new uint[] { (uint)res.Result },
                 PhotoUrl = string.IsNullOrEmpty(res.PhotoName) ? null : photoUrl.ToString(),
-                VideoUrl = null,
+                VideoUrl = string.IsNullOrEmpty(res.VideoName) ? null : videoName.ToString(),
             }).ToList();
 
             await SendResult(rollContext);

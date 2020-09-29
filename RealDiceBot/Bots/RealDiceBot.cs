@@ -81,15 +81,27 @@ namespace RealDiceBot.Bots
             }
             else
             {
-                return new List<Attachment>()
+                var attachements = new List<Attachment>();
+                if (!string.IsNullOrEmpty(res.VideoUrl))
                 {
-                    new Attachment
+                    attachements.Add(new Attachment
+                    {
+                        Name = Path.GetFileName(res.VideoUrl),
+                        ContentType = "video/x-msvideo",
+                        ContentUrl = res.VideoUrl,
+                    });
+                }
+                if (!string.IsNullOrEmpty(res.PhotoUrl))
+                {
+                    attachements.Add(new Attachment
                     {
                         Name = Path.GetFileName(res.PhotoUrl),
                         ContentType = "image/jpg",
                         ContentUrl = res.PhotoUrl,
-                    }
-                };
+                    });
+                }
+
+                return attachements;
             }
         }
 

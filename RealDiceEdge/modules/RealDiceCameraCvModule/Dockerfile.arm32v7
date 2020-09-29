@@ -1,0 +1,28 @@
+FROM microsoft/dotnet:2.1-sdk AS build-env
+WORKDIR /app
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish -c Release -o out RealDiceCameraCvModule.csproj
+
+FROM ghcr.io/7474/raspberry-pi-azure-iot-edge-opencvsharp:4.4.0
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        # Caption Font
+        fonts-noto \
+        # .NET Core Imaging dependencies
+        libc6-dev \
+        libgdiplus \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=build-env /app/out ./
+
+EXPOSE 80
+# XXX Bind port 80
+# RUN useradd -ms /bin/bash moduleuser
+# USER moduleuser
+ENTRYPOINT ["dotnet", "RealDiceCameraCvModule.dll"]

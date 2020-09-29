@@ -161,10 +161,15 @@ namespace RealDiceEdgeModule
                 WriteLog($"Start RollInternal {methodRequest.DataAsJson}");
 
                 var req = JsonConvert.DeserializeObject<RollRequest>(methodRequest.DataAsJson);
+                string reqMessage = req.Message;
 
                 //キャプション設定
                 WriteLog($"reqCaption");
-                var reqCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                var reqCaptionResult = await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = reqMessage,
+                    })));
                 WriteLog($"reqCaptionResult: {reqCaptionResult.StatusCode}");
 
                 //録画開始
@@ -179,18 +184,20 @@ namespace RealDiceEdgeModule
                 gpioController.Write(GPIO_MOTAR_AIN2, PinValue.High);
 
                 // 回す時間分だけ待つ。
-                await Task.Delay(randomizer.Next(1500, 2500));
+                await Task.Delay(randomizer.Next(1500, 2000));
 
                 //ダイスオフ
+                gpioController.Write(GPIO_MOTAR_AIN1, PinValue.High);
+                gpioController.Write(GPIO_MOTAR_AIN2, PinValue.High);
+                await Task.Delay(500);
+                gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
                 gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
                 gpioController.Write(GPIO_MOTAR_AIN2, PinValue.Low);
-                await Task.Delay(100);
-                gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
                 WriteLog($"gpio end");
                 // 止まる見込みまで待つ。
                 // XXX ビデオで停止を認識できるとカッコいい。
                 // 動体がなければいいので比較的平易にできるはず。
-                await Task.Delay(700);
+                await Task.Delay(1000);
 
                 //静止画取得
                 WriteLog($"takePhoto");
@@ -200,6 +207,14 @@ namespace RealDiceEdgeModule
                 WriteLog($"    {takePhotoResultStr}");
                 dynamic takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
                 string photoFileName = takePhotoResultObj.PhotoFileName;
+
+                WriteLog($"waitCaption");
+                var waitCaptionResult = await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = "Recognizing...",
+                    })));
+                WriteLog($"waitCaptionResult: {waitCaptionResult.StatusCode}");
 
                 //静止画認識
                 WriteLog($"cognitive");
@@ -244,13 +259,45 @@ namespace RealDiceEdgeModule
 
                 //キャプション設定
                 WriteLog($"resCaption");
-                var resCaptionResult = await cameraClient.PostAsync("caption", new StringContent(""));
+                var resCaptionResult = await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = $"1d6 = {rollResult} ! (Score: {rollResultScore})",
+                    })));
                 WriteLog($"resCaptionResult: {resCaptionResult.StatusCode}");
+
+                // キャプションが入るまで待つ
+                await Task.Delay(150);
+
+                try
+                {
+                    // 返却用の結果静止画
+                    WriteLog($"takePhotoWithCaption");
+                    takePhotoResult = await cameraClient.PostAsync("/photo_with_caption", new StringContent(""));
+                    WriteLog($"takePhotoWithCaptionResult: {takePhotoResult.StatusCode}");
+                    takePhotoResultStr = await takePhotoResult.Content.ReadAsStringAsync();
+                    WriteLog($"    {takePhotoResultStr}");
+                    takePhotoResultObj = JsonConvert.DeserializeObject(takePhotoResultStr);
+                    photoFileName = takePhotoResultObj.PhotoFileName;
+                }
+                catch { }
+
+                await Task.Delay(2000);
 
                 //録画終了
                 WriteLog($"recEnd");
                 var recEndResult = await cameraClient.PostAsync("/video/end", new StringContent(""));
+                var recEndResultStr = await recEndResult.Content.ReadAsStringAsync();
+                WriteLog($"    {recEndResultStr}");
+                dynamic recEndResultObj = JsonConvert.DeserializeObject(recEndResultStr);
+                string videoFileName = recEndResultObj.VideoFileName;
                 WriteLog($"recEndResult: {recEndResult.StatusCode}");
+
+                await cameraClient.PostAsync("caption",
+                    new StringContent(JsonConvert.SerializeObject(new
+                    {
+                        Caption = "",
+                    })));
 
                 //ダイスロール応答メッセージ
                 WriteLog($"resMessage");
@@ -261,7 +308,7 @@ namespace RealDiceEdgeModule
                     Result = rollResult,
                     Score = rollResultScore,
                     PhotoName = photoFileName,
-                    VideoName = req.Id + ".mp4",
+                    VideoName = videoFileName,
                 };
                 await moduleClient.SendEventAsync(
                     "RollResult",
@@ -275,7 +322,6 @@ namespace RealDiceEdgeModule
             }
             catch (Exception ex)
             {
-                // XXX 例外のハンドリング具合が分からん。
                 WriteLog(ex.Message);
                 WriteLog(ex.StackTrace);
                 throw;
@@ -285,6 +331,8 @@ namespace RealDiceEdgeModule
                 try
                 {
                     gpioController.Write(GPIO_MOTAR_STBY, PinValue.Low);
+                    gpioController.Write(GPIO_MOTAR_AIN1, PinValue.Low);
+                    gpioController.Write(GPIO_MOTAR_AIN2, PinValue.Low);
                 }
                 catch { }
             }

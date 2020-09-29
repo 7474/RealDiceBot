@@ -93,7 +93,7 @@
               }
             },
             "settings": {
-              "image": "${MODULES.RealDiceCameraModule.arm32v7}",
+              "image": "${MODULES.RealDiceCameraCvModule.arm32v7}",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [

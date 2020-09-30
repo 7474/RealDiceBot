@@ -25,27 +25,31 @@ namespace RealDiceCameraCvModule
         static VideoInputStream videoInputStream;
         static VideoOutputStream videoOutputStream;
         static System.Timers.Timer frameTimer;
-        // XXX ちゃんとやるならロックが要る
+        static object syncRoot = new object();
         static Mat _lastFrame;
         static Mat lastFrame
         {
-            get { return _lastFrame?.Clone(); }
+            get { lock (syncRoot) { return _lastFrame?.Clone(); } }
             set
             {
-                var x = _lastFrame;
-                _lastFrame = value;
-                x?.Dispose();
+                lock (syncRoot)
+                {
+                    _lastFrame?.Dispose();
+                    _lastFrame = value;
+                }
             }
         }
         static Mat _lastOriginalFrame;
         static Mat lastOriginalFrame
         {
-            get { return _lastOriginalFrame?.Clone(); }
+            get { lock (syncRoot) { return _lastOriginalFrame?.Clone(); } }
             set
             {
-                var x = _lastOriginalFrame;
-                _lastOriginalFrame = value;
-                x?.Dispose();
+                lock (syncRoot)
+                {
+                    _lastOriginalFrame?.Dispose();
+                    _lastOriginalFrame = value;
+                }
             }
         }
         static string caption;
@@ -223,8 +227,11 @@ namespace RealDiceCameraCvModule
                 WriteLog($"    {filePath}");
 
                 frameTimer.Stop();
+                WriteLog($"    frameTimer.Stop");
                 videoOutputStream.Stop();
-                videoOutputStream.Close();
+                WriteLog($"    videoOutputStream.Stop");
+                videoOutputStream.Dispose();
+                WriteLog($"    videoOutputStream.Dispose");
                 videoOutputStream = null;
 
                 videoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + videoExtension;
@@ -232,10 +239,11 @@ namespace RealDiceCameraCvModule
                 var blob = cloudBlobContainer.GetBlockBlobReference(videoFileName);
                 //blob.Properties.ContentType = "video/mp4";
                 blob.Properties.ContentType = "video/x-msvideo";
-                await blob.UploadFromStreamAsync(File.OpenRead(filePath));
+                await blob.UploadFromFileAsync(filePath);
                 WriteLog($"    UploadFromFileAsync end");
-                File.Delete(filePath);
-                WriteLog($"    File.Delete end");
+                // XXX やっぱファイル消すとダメな感じ。await もう少し見よう。
+                //File.Delete(filePath);
+                //WriteLog($"    File.Delete end");
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
             else

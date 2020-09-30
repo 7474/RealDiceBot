@@ -172,7 +172,13 @@ namespace RealDiceEdgeModule
                 {
                     FileName = "ffmpeg",
                     Arguments = $"-i {tmpInputFilePath} -f gif - " +
-                        $" -filter_complex \"[0:v] fps = {fps},scale = 320:-1,split[a][b];[a] palettegen[p];[b][p] paletteuse=dither=none\"",
+                        $" -filter_complex \"" +
+                            $"[0:v] fps={fps},scale=320:-1,split [a][b];" +
+                            // palettegen 中に paletteuse バッファが溢れるので fifo フィルタを通す
+                            $"[b] fifo [b2];" +
+                            $"[a] palettegen [p];" +
+                            $"[b2][p] paletteuse=dither=none" +
+                        $"\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,

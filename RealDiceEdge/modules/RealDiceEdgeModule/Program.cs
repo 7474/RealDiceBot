@@ -11,6 +11,7 @@ namespace RealDiceEdgeModule
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Device.Gpio;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -153,6 +154,35 @@ namespace RealDiceEdgeModule
             }
         }
 
+        static async Task<CloudBlockBlob> ConvertVideoToGif(CloudBlockBlob videoBlob)
+        {
+            var gifFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".gif";
+            var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
+            var fps = 15;
+
+            var process = new Process()
+            {
+                // https://qiita.com/yusuga/items/ba7b5c2cac3f2928f040
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "ffmpeg",
+                    Arguments = $"-i - -f gif -" +
+                        $" -filter_complex \"[0:v] fps = {fps},scale = 320:-1,split[a][b];[a] palettegen[p];[b][p] paletteuse=dither=none\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            WriteLog("ConvertVideoToGif Start");
+            process.Start();
+            _ = (await videoBlob.OpenReadAsync())
+                .CopyToAsync(process.StandardInput.BaseStream);
+            await gifBlob.UploadFromStreamAsync(process.StandardOutput.BaseStream);
+            process.WaitForExit();
+            WriteLog("ConvertVideoToGif End");
+
+            return gifBlob;
+        }
+
         static async Task RollInternal(MethodRequest methodRequest, ModuleClient moduleClient)
         {
             try
@@ -292,6 +322,17 @@ namespace RealDiceEdgeModule
                 string videoFileName = recEndResultObj.VideoFileName;
                 WriteLog($"recEndResult: {recEndResult.StatusCode}");
 
+                // GIF化
+                try
+                {
+                    var gifBlob = await ConvertVideoToGif(cloudBlobContainer.GetBlockBlobReference(videoFileName));
+                    videoFileName = gifBlob.Name;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex.Message);
+                }
+
                 await cameraClient.PostAsync("caption",
                     new StringContent(JsonConvert.SerializeObject(new
                     {
@@ -335,6 +376,11 @@ namespace RealDiceEdgeModule
                 }
                 catch { }
             }
+        }
+
+        static string GetDateString()
+        {
+            return DateTimeOffset.UtcNow.ToString("yyyyMMdd");
         }
 
         static void WriteLog(string message)

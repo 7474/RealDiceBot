@@ -54,6 +54,7 @@ namespace RealDiceCameraCvModule
         }
         static string caption;
         static System.Drawing.Font captionFont;
+        static System.Drawing.Font smallFont;
         static string videoExtension = ".avi";
 
         static void Main(string[] args)
@@ -106,7 +107,8 @@ namespace RealDiceCameraCvModule
             videoInputStream.Start();
 
             caption = "";
-            captionFont = new System.Drawing.Font("noto", 10.5f);
+            captionFont = new System.Drawing.Font("noto", 15f);
+            smallFont = new System.Drawing.Font("noto", 10f);
 
             frameTimer = new System.Timers.Timer(1.0 / fps);
             frameTimer.Elapsed += UpdateFrame;

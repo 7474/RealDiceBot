@@ -57,12 +57,19 @@ namespace RealDiceCameraCvModule
 
         public void Dispose()
         {
-            if (videoWriter != null && !videoWriter.IsDisposed)
+            try
             {
-                videoWriter.Release();
-                videoWriter.Dispose();
+                if (videoWriter != null && !videoWriter.IsDisposed)
+                {
+                    videoWriter.Release();
+                    videoWriter.Dispose();
+                }
+                frameTimer.Dispose();
             }
-            frameTimer.Dispose();
+            catch (Exception ex)
+            {
+                WriteLog(ex.Message);
+            }
         }
 
         public void Start()

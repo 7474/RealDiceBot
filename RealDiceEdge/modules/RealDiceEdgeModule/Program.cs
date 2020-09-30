@@ -11,6 +11,7 @@ namespace RealDiceEdgeModule
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Device.Gpio;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -153,6 +154,47 @@ namespace RealDiceEdgeModule
             }
         }
 
+        static async Task<CloudBlockBlob> ConvertVideoToGif(CloudBlockBlob videoBlob)
+        {
+            var gifFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".gif";
+            var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
+            gifBlob.Properties.ContentType = "image/gif";
+            var fps = 15;
+
+            // https://amaya382.hatenablog.jp/entry/2017/03/26/012530
+            // 動画をパイプで入力するとダメパターンがある様なのでファイルから入力する
+            var tmpInputFilePath = Path.Combine("/tmp", Path.GetFileName(videoBlob.Name));
+            await videoBlob.DownloadToFileAsync(tmpInputFilePath, FileMode.CreateNew);
+
+            var process = new Process()
+            {
+                // https://qiita.com/yusuga/items/ba7b5c2cac3f2928f040
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "ffmpeg",
+                    Arguments = $"-i {tmpInputFilePath} -f gif - " +
+                        $" -filter_complex \"" +
+                            $"[0:v] fps={fps},scale=320:-1,split [a][b];" +
+                            // palettegen 中に paletteuse バッファが溢れるので fifo フィルタを通す
+                            $"[b] fifo [b2];" +
+                            $"[a] palettegen [p];" +
+                            $"[b2][p] paletteuse=dither=none" +
+                        $"\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                }
+            };
+            WriteLog("ConvertVideoToGif Start");
+            process.Start();
+            await gifBlob.UploadFromStreamAsync(process.StandardOutput.BaseStream);
+            process.WaitForExit();
+            File.Delete(tmpInputFilePath);
+            WriteLog("ConvertVideoToGif End");
+
+            return gifBlob;
+        }
+
         static async Task RollInternal(MethodRequest methodRequest, ModuleClient moduleClient)
         {
             try
@@ -292,6 +334,17 @@ namespace RealDiceEdgeModule
                 string videoFileName = recEndResultObj.VideoFileName;
                 WriteLog($"recEndResult: {recEndResult.StatusCode}");
 
+                // GIF化
+                try
+                {
+                    var gifBlob = await ConvertVideoToGif(cloudBlobContainer.GetBlockBlobReference(videoFileName));
+                    videoFileName = gifBlob.Name;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex.Message);
+                }
+
                 await cameraClient.PostAsync("caption",
                     new StringContent(JsonConvert.SerializeObject(new
                     {
@@ -335,6 +388,11 @@ namespace RealDiceEdgeModule
                 }
                 catch { }
             }
+        }
+
+        static string GetDateString()
+        {
+            return DateTimeOffset.UtcNow.ToString("yyyyMMdd");
         }
 
         static void WriteLog(string message)

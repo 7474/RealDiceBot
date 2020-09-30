@@ -160,24 +160,29 @@ namespace RealDiceEdgeModule
             var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
             var fps = 15;
 
+            // https://amaya382.hatenablog.jp/entry/2017/03/26/012530
+            // 動画をパイプで入力するとダメパターンがある様なのでファイルから入力する
+            var tmpInputFilePath = Path.Combine("/tmp", Path.GetFileName(videoBlob.Name));
+            await videoBlob.DownloadToFileAsync(tmpInputFilePath, FileMode.CreateNew);
+
             var process = new Process()
             {
                 // https://qiita.com/yusuga/items/ba7b5c2cac3f2928f040
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "ffmpeg",
-                    Arguments = $"-i - -f gif -" +
+                    Arguments = $"-i {tmpInputFilePath} -f gif - " +
                         $" -filter_complex \"[0:v] fps = {fps},scale = 320:-1,split[a][b];[a] palettegen[p];[b][p] paletteuse=dither=none\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
+                    RedirectStandardOutput = true,
                 }
             };
             WriteLog("ConvertVideoToGif Start");
             process.Start();
-            _ = (await videoBlob.OpenReadAsync())
-                .CopyToAsync(process.StandardInput.BaseStream);
             await gifBlob.UploadFromStreamAsync(process.StandardOutput.BaseStream);
             process.WaitForExit();
+            File.Delete(tmpInputFilePath);
             WriteLog("ConvertVideoToGif End");
 
             return gifBlob;

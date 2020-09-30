@@ -158,6 +158,7 @@ namespace RealDiceEdgeModule
         {
             var gifFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".gif";
             var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
+            gifBlob.Properties.ContentType = "image/gif";
             var fps = 15;
 
             // https://amaya382.hatenablog.jp/entry/2017/03/26/012530

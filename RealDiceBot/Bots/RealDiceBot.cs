@@ -96,9 +96,14 @@ namespace RealDiceBot.Bots
                     attachements.Add(new Attachment
                     {
                         Name = Path.GetFileName(res.VideoUrl),
-                        ContentType = "video/x-msvideo",
+                        ContentType = res.VideoUrl.EndsWith("gif") ? "image/gif" : "video/x-msvideo",
                         ContentUrl = res.VideoUrl,
                     });
+                }
+                // Gifなら動画を先に見せる
+                if(res.VideoUrl.EndsWith("gif"))
+                {
+                    attachements.Reverse();
                 }
 
                 return attachements;

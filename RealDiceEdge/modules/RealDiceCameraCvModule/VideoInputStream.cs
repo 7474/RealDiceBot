@@ -28,7 +28,7 @@ namespace RealDiceCameraCvModule
 
         private void ReadFrame(object sender, ElapsedEventArgs e)
         {
-            WriteLog("ReadFrame");
+            //WriteLog("ReadFrame");
             Mat image = new Mat();
             if (!videoCapture.Read(image))
             {

@@ -147,7 +147,6 @@ namespace RealDiceEdgeModule
             }
             catch (Exception ex)
             {
-                // XXX 例外のハンドリング具合が分からん。
                 WriteLog(ex.Message);
                 WriteLog(ex.StackTrace);
                 throw;
@@ -197,7 +196,7 @@ namespace RealDiceEdgeModule
                 // 止まる見込みまで待つ。
                 // XXX ビデオで停止を認識できるとカッコいい。
                 // 動体がなければいいので比較的平易にできるはず。
-                await Task.Delay(1000);
+                await Task.Delay(1500);
 
                 //静止画取得
                 WriteLog($"takePhoto");

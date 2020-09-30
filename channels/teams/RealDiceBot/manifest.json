@@ -1,0 +1,43 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.7/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.7",
+    "version": "1.0.0",
+    "id": "68f57c28-15a6-4405-966d-e57d35080844",
+    "packageName": "jp.koudenpa.realdicebot",
+    "developer": {
+        "name": "koudenpa",
+        "websiteUrl": "https://github.com/7474/RealDiceBot",
+        "privacyUrl": "https://github.com/7474/RealDiceBot/blob/master/README.md",
+        "termsOfUseUrl": "https://github.com/7474/RealDiceBot/blob/master/README.md"
+    },
+    "icons": {
+        "color": "color.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "RealDiceBot",
+        "full": "RealDiceBot"
+    },
+    "description": {
+        "short": "Roll real dice and response result image.",
+        "full": "The dice are IoT.\nIt is controlled by Raspberry Pi, which is an Azure IoT Edge Device.\nSpeaking to a bot, the dice are rolled and recognized by the edges in the exported model of Azure Cognitive Services Custom Vision.\nThe bot responds with the image it rolls and the recognized roll."
+    },
+    "accentColor": "#267938",
+    "bots": [
+        {
+            "botId": "a35637a9-0577-42ee-893e-95f26f885e8d",
+            "scopes": [
+                "personal",
+                "team",
+                "groupchat"
+            ],
+            "supportsFiles": true,
+            "isNotificationOnly": false
+        }
+    ],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "validDomains": []
+}

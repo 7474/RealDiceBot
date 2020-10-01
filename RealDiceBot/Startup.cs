@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 //
 // Generated with Bot Builder V4 SDK Template for Visual Studio EchoBot v4.10.2
 
-using Azure.Storage.Queues;
+using BotFrameworkTwitterAdapter;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,14 +14,12 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using RealDiceBot.Models;
-using RealDiceBot.Models.Options;
 using RealDiceBot.Services;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
-using TwitterBotFWIntegration;
 
 namespace RealDiceBot
 {
@@ -35,12 +33,12 @@ namespace RealDiceBot
 
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment Env { get; }
+        public ILoggerFactory LoggerFactory { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddNewtonsoftJson();
-
 
             // https://docs.microsoft.com/ja-jp/azure/bot-service/bot-builder-telemetry?view=azure-bot-service-4.0&tabs=csharp\
             // Create the Bot Framework Adapter with error handling enabled.
@@ -64,24 +62,24 @@ namespace RealDiceBot
             // Create the telemetry middleware (used by the telemetry initializer) to track conversation events
             services.AddSingleton<TelemetryLoggerMiddleware>();
 
-            // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-            services.AddTransient<IBot, Bots.RealDiceBot>();
-
-            // XXX アダプタを追加する場合はApplication Insightsに対応している必要がある 
-
             services.AddSingleton<IRollService, RollService>();
 
-            // 正直どこで動かすのか考えあぐねているが、
-            // 今後Steam処理やWebhookでのコールバックを主にしていく場合Functionsではなく、
-            // かつWebのエンドポイントを設けることになるのでServiceはDIコンテナに入れることになるだろう。
-            // しかし、Bot Frameworkのストリームは会話ID毎なので、スケールするには会話ID毎に責務分けする必要がある。
-            // それを自前実装しなくてはならない（多分）とか、独自のチャンネルとDirectLineさせる気はあるんだろうか。
-            var twitterBotIntegrationManager = CreateTwitterBotIntegrationManager(Configuration);
-            services.AddSingleton(twitterBotIntegrationManager);
-            if (!Env.IsDevelopment())
+            services.AddTwitterConversationAdapter(x => Configuration.Bind("Twitter", x));
+            // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
+            // services.AddTransient<IBot, Bots.RealDiceBot>();
+            services.AddBot<Bots.RealDiceBot>(options =>
+            {
+                //var appId = Configuration.GetSection("MicrosoftAppId").Value;
+                //var appPassword = Configuration.GetSection("MicrosoftAppPassword").Value;
+                //options.CredentialProvider = new SimpleCredentialProvider(appId, appPassword);
+
+                ILogger logger = LoggerFactory.CreateLogger<Bots.RealDiceBot>();
+                options.OnTurnError = async (context, exception) =>
                 {
-                twitterBotIntegrationManager.Start();
-            }
+                    logger.LogError($"Exception caught : {exception}");
+                    await context.SendActivityAsync("Sorry, it looks like something went wrong.");
+                };
+            });
 
             //var basePath = Env.ContentRootPath;
             var baseUrl = new Uri(Configuration["BaseUrl"]);
@@ -96,11 +94,14 @@ namespace RealDiceBot
                 .ToList();
             services.AddSingleton(new StaticAssets(diceFiles));
             services.AddApplicationInsightsTelemetry();
+
+            // XXX Hook tweet stream start.
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            LoggerFactory = loggerFactory;
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -112,6 +113,7 @@ namespace RealDiceBot
 
             app.UseDefaultFiles()
                 .UseStaticFiles()
+                .UseBotFramework()
                 .UseWebSockets()
                 .UseRouting()
                 .UseAuthorization()
@@ -122,21 +124,6 @@ namespace RealDiceBot
 
             // Allow the bot to use named pipes.
             app.UseNamedPipes(System.Environment.GetEnvironmentVariable("APPSETTING_WEBSITE_SITE_NAME") + ".directline");
-        }
-
-        private TwitterBotIntegrationManager CreateTwitterBotIntegrationManager(IConfiguration configuration)
-        {
-            var directLineSecret = Configuration["DirectLineSecret"];
-            var twitterOptions = new TwitterOptions();
-            Configuration.GetSection("Twitter").Bind(twitterOptions);
-
-            return new TwitterBotIntegrationManager(
-                directLineSecret,
-                twitterOptions.ConsumerKey,
-                twitterOptions.ConsumerSecret,
-                twitterOptions.BearerToken,
-                twitterOptions.AccessToken,
-                twitterOptions.AccessTokenSecret);
         }
     }
 }

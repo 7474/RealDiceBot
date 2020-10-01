@@ -4,6 +4,7 @@
 // Generated with Bot Builder V4 SDK Template for Visual Studio EchoBot v4.10.2
 
 using System.Threading.Tasks;
+using BotFrameworkTwitterAdapter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -19,11 +20,18 @@ namespace RealDiceBot.Controllers
     {
         private readonly IBotFrameworkHttpAdapter Adapter;
         private readonly IBot Bot;
+        private readonly TwitterConversationAdapter TwitterConversationAdapter;
 
-        public BotController(IBotFrameworkHttpAdapter adapter, IBot bot)
+        public BotController(
+            IBotFrameworkHttpAdapter adapter,
+            IBot bot,
+            TwitterConversationAdapter twitterConversationAdapter
+            )
         {
             Adapter = adapter;
             Bot = bot;
+            // TODO 別の形でインスタンスの取得とStreamのヘルスチェックを行う
+            TwitterConversationAdapter = twitterConversationAdapter;
         }
 
         [HttpPost, HttpGet]

@@ -67,19 +67,6 @@ namespace RealDiceBot
             services.AddTwitterConversationAdapter(x => Configuration.Bind("Twitter", x));
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, Bots.RealDiceBot>();
-//             services.AddBot<Bots.RealDiceBot>(options =>
-//             {
-//                 //var appId = Configuration.GetSection("MicrosoftAppId").Value;
-//                 //var appPassword = Configuration.GetSection("MicrosoftAppPassword").Value;
-//                 //options.CredentialProvider = new SimpleCredentialProvider(appId, appPassword);
-
-//                 ILogger logger = LoggerFactory.CreateLogger<Bots.RealDiceBot>();
-//                 options.OnTurnError = async (context, exception) =>
-//                 {
-//                     logger.LogError($"Exception caught : {exception}");
-//                     await context.SendActivityAsync("Sorry, it looks like something went wrong.");
-//                 };
-//             });
 
             //var basePath = Env.ContentRootPath;
             var baseUrl = new Uri(Configuration["BaseUrl"]);
@@ -113,7 +100,6 @@ namespace RealDiceBot
 
             app.UseDefaultFiles()
                 .UseStaticFiles()
-                .UseBotFramework()
                 .UseWebSockets()
                 .UseRouting()
                 .UseAuthorization()

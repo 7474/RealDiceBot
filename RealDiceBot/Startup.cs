@@ -4,6 +4,7 @@
 // Generated with Bot Builder V4 SDK Template for Visual Studio EchoBot v4.10.2
 
 using BotFrameworkTwitterAdapter;
+using BotFrameworkTwitterAdapter.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -64,9 +65,11 @@ namespace RealDiceBot
 
             services.AddSingleton<IRollService, RollService>();
 
-            services.AddTwitterConversationAdapter(
-                x => Configuration.Bind("Twitter", x),
-                x => Configuration.Bind("TwitterAdapter", x));
+            services.AddSingleton<TwitterService>();
+            services.AddSingleton<TwitterConversationAdapter, TwitterConversationAdapterWithErrorHandler>();
+            services.AddOptions();
+            services.Configure<TwitterServiceOptions>((x) => Configuration.Bind("Twitter", x));
+            services.Configure<TwitterConversationAdapterOptions>((x) => Configuration.Bind("TwitterAdapter", x));
 
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, Bots.RealDiceBot>();

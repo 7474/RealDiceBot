@@ -64,7 +64,10 @@ namespace RealDiceBot
 
             services.AddSingleton<IRollService, RollService>();
 
-            services.AddTwitterConversationAdapter(x => Configuration.Bind("Twitter", x));
+            services.AddTwitterConversationAdapter(
+                x => Configuration.Bind("Twitter", x),
+                x => Configuration.Bind("TwitterAdapter", x));
+
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, Bots.RealDiceBot>();
 
@@ -81,8 +84,6 @@ namespace RealDiceBot
                 .ToList();
             services.AddSingleton(new StaticAssets(diceFiles));
             services.AddApplicationInsightsTelemetry();
-
-            // XXX Hook tweet stream start.
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -110,6 +111,10 @@ namespace RealDiceBot
 
             // Allow the bot to use named pipes.
             app.UseNamedPipes(System.Environment.GetEnvironmentVariable("APPSETTING_WEBSITE_SITE_NAME") + ".directline");
+
+            // XXX スケールアウト対応するならどうにかする
+            // Start tweet receiver.
+            app.ApplicationServices.GetRequiredService<TwitterConversationAdapter>().Start();
         }
     }
 }

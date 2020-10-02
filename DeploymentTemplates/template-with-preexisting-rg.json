@@ -267,6 +267,10 @@
               "value": "[parameters('twitterAccessTokenSecret')]"
             },
             {
+              "name": "TwitterAdapter__BotTwitterApiEndpoint",
+              "value": "[concat(parameters('baseUrl'), 'api/twitter')]"
+            },
+            {
               // For Bot Framework
               // https://docs.microsoft.com/ja-jp/azure/bot-service/bot-builder-telemetry?view=azure-bot-service-4.0&tabs=csharp
               "name": "ApplicationInsights__InstrumentationKey",

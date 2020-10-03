@@ -117,7 +117,7 @@ namespace RealDiceFunctions
             var videoBlob = blobContainer.GetBlobClient(res.VideoName);
 
             await WaitUploadBlob(photoBlob, 3, 100, log);
-            await WaitUploadBlob(videoBlob, 3, 400, log);
+            await WaitUploadBlob(videoBlob, 5, 800, log);
 
             var containerUrl = Environment.GetEnvironmentVariable("ResultContainerBaseUri");
             var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);

@@ -156,9 +156,6 @@ namespace RealDiceEdgeModule
 
         static async Task<CloudBlockBlob> ConvertVideoToGif(CloudBlockBlob videoBlob)
         {
-            var gifFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".gif";
-            var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
-            gifBlob.Properties.ContentType = "image/gif";
             var fps = 15;
 
             // https://amaya382.hatenablog.jp/entry/2017/03/26/012530
@@ -187,6 +184,9 @@ namespace RealDiceEdgeModule
             };
             WriteLog("ConvertVideoToGif Start");
             process.Start();
+            var gifFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + ".gif";
+            var gifBlob = cloudBlobContainer.GetBlockBlobReference(gifFileName);
+            gifBlob.Properties.ContentType = "image/gif";
             await gifBlob.UploadFromStreamAsync(process.StandardOutput.BaseStream);
             process.WaitForExit();
             File.Delete(tmpInputFilePath);

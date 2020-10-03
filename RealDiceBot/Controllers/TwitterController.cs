@@ -36,7 +36,7 @@ namespace Teams_Zoom_Sample.Controllers
         // BotFrameworkAdapter#ContinueConversationAsync で Activity#ServiceUrl にコールバックされる。
         // Slackなどの公式チャンネルではそれをチャネル固有のエンドポイントで受けて処理している。
         // サードパーティアダプタでこれをどうするのがいいのかはよく分からん。
-        [HttpPost("/v3/conversations/{conversationId}/activities/{activityId}")]
+        [HttpPost("v3/conversations/{conversationId}/activities/{activityId}")]
         public async Task PostV3ConversationsActivity(
             string conversationId,
             string activityId,

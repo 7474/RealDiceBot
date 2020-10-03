@@ -20,18 +20,14 @@ namespace RealDiceBot.Controllers
     {
         private readonly IBotFrameworkHttpAdapter Adapter;
         private readonly IBot Bot;
-        private readonly TwitterConversationAdapter TwitterConversationAdapter;
 
         public BotController(
             IBotFrameworkHttpAdapter adapter,
-            IBot bot,
-            TwitterConversationAdapter twitterConversationAdapter
+            IBot bot
             )
         {
             Adapter = adapter;
             Bot = bot;
-            // TODO 別の形でインスタンスの取得とStreamのヘルスチェックを行う
-            TwitterConversationAdapter = twitterConversationAdapter;
         }
 
         [HttpPost, HttpGet]

@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Teams_Zoom_Sample.Controllers
+namespace RealDiceBot.Controllers
 {
     [Route("api/twitter")]
     [ApiController]

@@ -1,4 +1,6 @@
+using Azure.Storage.Blobs;
 using Microsoft.Azure.Devices;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Bot.Connector.DirectLine;
 using Microsoft.Extensions.Logging;
@@ -104,6 +106,19 @@ namespace RealDiceFunctions
                 return;
             }
 
+            // 添付ファイルのアップロードを待つ
+            // XXX ここで待ちたくない＆待つにしてももう少しやりようがありそう
+            var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            // XXX 変数にする
+            var containarName = "realdiceresults";
+            var blobService = new BlobServiceClient(connectionString);
+            var blobContainer = blobService.GetBlobContainerClient(containarName);
+            var photoBlob = blobContainer.GetBlobClient(res.PhotoName);
+            var videoBlob = blobContainer.GetBlobClient(res.VideoName);
+
+            await WaitUploadBlob(photoBlob, 3, 100);
+            await WaitUploadBlob(videoBlob, 3, 400);
+
             var containerUrl = Environment.GetEnvironmentVariable("ResultContainerBaseUri");
             var photoUrl = new Uri(new Uri(containerUrl), res.PhotoName);
             var videoName = new Uri(new Uri(containerUrl), res.VideoName);
@@ -118,6 +133,19 @@ namespace RealDiceFunctions
             }).ToList();
 
             await SendResult(rollContext);
+        }
+
+        private static async Task WaitUploadBlob(BlobClient blob, int restRetry, int waitTime, ILogger log)
+        {
+            log.LogInformation($"WaitUploadBlob Start {blob.Name}");
+            while (!await blob.ExistsAsync() && restRetry > 0)
+            {
+                log.LogInformation($"WaitUploadBlob Not Exists {blob.Name}, waitTime = {waitTime}, restRetry = {restRetry}");
+                await Task.Delay(waitTime);
+                waitTime *= 2;
+                restRetry -= 1;
+            }
+            log.LogInformation($"WaitUploadBlob End {blob.Name}");
         }
 
         private static async Task SendResult(RollContext res)

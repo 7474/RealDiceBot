@@ -37,7 +37,7 @@ namespace Teams_Zoom_Sample.Controllers
         // Slackなどの公式チャンネルではそれをチャネル固有のエンドポイントで受けて処理している。
         // サードパーティアダプタでこれをどうするのがいいのかはよく分からん。
         [HttpPost("v3/conversations/{conversationId}/activities/{activityId}")]
-        public async Task PostV3ConversationsActivity(
+        public async Task<IActionResult> PostV3ConversationsActivity(
             string conversationId,
             string activityId,
             CancellationToken cancellationToken)
@@ -54,8 +54,7 @@ namespace Teams_Zoom_Sample.Controllers
             using (var turnContext = new TurnContext(_adapter, requestActivity))
             {
                 var res = await _adapter.SendActivitiesAsync(turnContext, new Activity[] { requestActivity }, cancellationToken);
-                // XXX { "id": "string" } を返してもいい。
-                Response.StatusCode = 204;
+                return Ok(res[0]);
             }
         }
     }

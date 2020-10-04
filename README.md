@@ -33,3 +33,5 @@ https://twitter.com/RealDiceBot
 WebブラウザのチャットUIで何か入力するとダイスを振った結果を発言します。
 
 https://realdicebot.azurewebsites.net/
+
+>![](docs/images/webchat.png)

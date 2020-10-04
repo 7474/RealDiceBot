@@ -87,9 +87,6 @@ namespace RealDiceBot
                 .ToList();
             services.AddSingleton(new StaticAssets(diceFiles));
             services.AddApplicationInsightsTelemetry();
-
-            // https://docs.microsoft.com/ja-jp/aspnet/core/migration/22-to-30?view=aspnetcore-3.1&tabs=visual-studio#use-mvc-without-endpoint-routing
-            services.AddMvc(options => options.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -113,10 +110,6 @@ namespace RealDiceBot
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapControllers();
-                })
-                .UseMvc(routes =>
-                {
-                    routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
                 });
 
             // Allow the bot to use named pipes.

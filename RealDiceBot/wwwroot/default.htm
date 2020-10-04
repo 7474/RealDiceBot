@@ -1,5 +1,3 @@
-@model RealDiceBot.Models.Views.ChatConfig
-
 <!doctype html>
 <html>
 <head>
@@ -360,8 +358,9 @@
                 The bot responds with the image it rolls and the recognized roll.
             </div>
             <div class="main-text">
-                <a class="ctaLink"
-                   href="https://github.com/7474/RealDiceBot" target="_blank">RealDiceBot Repository</a>
+                Please see 
+                <a class="ctaLink" href="https://github.com/7474/RealDiceBot" target="_blank">RealDiceBot Repository</a>
+                for more information.
             </div>
         </div>
         <div class="column webchat-content-area">
@@ -369,10 +368,14 @@
         </div>
     </div>
     <script>
-        window.WebChat.renderWebChat({
-            directLine: window.WebChat.createDirectLine({ token: '@Model.Token' }),
-            userID: '@Model.UserId'
-        }, document.getElementById('webchat'));
+        (async () => {
+            const res = await fetch('/api/webchat/token', { method: 'POST' });
+            const { token, userId } = await res.json();
+            window.WebChat.renderWebChat({
+                directLine: window.WebChat.createDirectLine({ token: token }),
+                userID: userId
+            }, document.getElementById('webchat'));
+        })();
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RealDiceBot.Models.Views
+namespace RealDiceBot.Models.Api.WebChat
 {
 
     public class ChatConfig

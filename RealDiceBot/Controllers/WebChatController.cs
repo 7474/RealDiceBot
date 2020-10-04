@@ -8,23 +8,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using RealDiceBot.Models.Views;
+using RealDiceBot.Models.Api.WebChat;
 
 namespace RealDiceBot.Controllers
 {
-    // https://github.com/microsoft/BotBuilder-Samples/blob/main/experimental/DirectLineTokenSite/Bot_Auth_DL_Secure_Site_MVC/Controllers/HomeController.cs
-    public class HomeController : Controller
+    [Route("api/webchat")]
+    [ApiController]
+    public class WebChatController : ControllerBase
     {
-        private readonly string secret ;
+        private readonly string secret;
         private const string dlUrl = "https://directline.botframework.com/v3/directline/tokens/generate";
 
-        public HomeController(IConfiguration configration)
+        public WebChatController(IConfiguration configration)
         {
             // XXX WebChat固有のSiteでなくていい？
             secret = configration["DirectLineSecret"];
         }
 
-        public async Task<ActionResult> Index()
+        [HttpPost("token")]
+        public async Task<ActionResult> Token()
         {
             HttpClient client = new HttpClient();
             var userId = $"dl_{Guid.NewGuid()}";
@@ -52,7 +54,7 @@ namespace RealDiceBot.Controllers
                 UserId = userId
             };
 
-            return View(config);
+            return Ok(config);
         }
     }
 }

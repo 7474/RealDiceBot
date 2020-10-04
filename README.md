@@ -4,7 +4,7 @@
 
 電動ダイスをAzure IoT EdgeデバイスのRaspberry Pi 3で制御して写真を撮っています。出目の判断もRaspberry Pi上で行っています。2と3の判断が甘いです。
 
-## Twitter@RealDiceBot
+## Twitter @RealDiceBot
 
 話しかけられるとダイスを振った結果を返信します。
 
@@ -12,7 +12,7 @@ https://twitter.com/RealDiceBot
 
 >![](docs/images/twitter.png)
 
-## Slack@RealDiceBot
+## Slack RealDiceBot App
 
 招待されたチャンネルで発言があるとダイスを振った結果を発言します。
 
@@ -20,10 +20,16 @@ https://twitter.com/RealDiceBot
 
 >![](docs/images/slack.png)
 
-## Teams@RealDiceBot
+## Teams RealDiceBot Custom App
 
 カスタムアプリとして登録して話しかけるとダイスを振った結果を発言します。
 
 [カスタムアプリのマニフェストなど](./channels/teams/)
 
 >![](docs/images/teams.png)
+
+## WebChat RealDiceBot
+
+WebブラウザのチャットUIで何か入力するとダイスを振った結果を発言します。
+
+https://realdicebot.azurewebsites.net/

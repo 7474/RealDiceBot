@@ -27,7 +27,7 @@ namespace RealDiceBot
                     builder.AddAzureWebAppDiagnostics();
 
                     // https://docs.microsoft.com/ja-jp/azure/azure-monitor/app/ilogger#aspnet-core-applications
-                    builder.AddApplicationInsights(hostingContext.Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
+                    builder.AddApplicationInsights(hostingContext.Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"] ?? "");
                     builder.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Warning);
                 })
                 .ConfigureServices(serviceCollection => serviceCollection

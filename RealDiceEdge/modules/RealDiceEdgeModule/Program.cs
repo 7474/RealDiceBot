@@ -207,7 +207,7 @@ namespace RealDiceEdgeModule
                 //キャプション設定
                 WriteLog($"reqCaption");
                 var reqCaptionResult = await cameraClient.PostAsync("caption",
-                    new StringContent(JsonConvert.SerializeObject(new
+                    new StringContent(JsonConvert.SerializeObject(new CaptionRequest
                     {
                         Caption = reqMessage,
                     })));
@@ -251,7 +251,7 @@ namespace RealDiceEdgeModule
 
                 WriteLog($"waitCaption");
                 var waitCaptionResult = await cameraClient.PostAsync("caption",
-                    new StringContent(JsonConvert.SerializeObject(new
+                    new StringContent(JsonConvert.SerializeObject(new CaptionRequest
                     {
                         Caption = "Recognizing...",
                     })));
@@ -275,11 +275,11 @@ namespace RealDiceEdgeModule
                 WriteLog($"cognitiveResult: {cognitiveResult.StatusCode}");
                 var cognitiveResultString = await cognitiveResult.Content.ReadAsStringAsync();
                 WriteLog(cognitiveResultString);
+                CognitiveResult cognitiveResultObject = null;
                 if (cognitiveResult.StatusCode == HttpStatusCode.OK)
                 {
-                    // TODO 型を付ける
-                    dynamic rollResultJson = JsonConvert.DeserializeObject(cognitiveResultString);
-                    IList<dynamic> predictions = rollResultJson.predictions.ToObject<List<dynamic>>();
+                    cognitiveResultObject = JsonConvert.DeserializeObject<CognitiveResult>(cognitiveResultString);
+                    var predictions = cognitiveResultObject.predictions;
                     if (predictions.Any())
                     {
                         var prediction = predictions[0];
@@ -301,9 +301,10 @@ namespace RealDiceEdgeModule
                 //キャプション設定
                 WriteLog($"resCaption");
                 var resCaptionResult = await cameraClient.PostAsync("caption",
-                    new StringContent(JsonConvert.SerializeObject(new
+                    new StringContent(JsonConvert.SerializeObject(new CaptionRequest
                     {
                         Caption = $"1d6 = {rollResult} ! (Score: {rollResultScore})",
+                        CognitiveResult = cognitiveResultObject,
                     })));
                 WriteLog($"resCaptionResult: {resCaptionResult.StatusCode}");
 
@@ -346,7 +347,7 @@ namespace RealDiceEdgeModule
                 }
 
                 await cameraClient.PostAsync("caption",
-                    new StringContent(JsonConvert.SerializeObject(new
+                    new StringContent(JsonConvert.SerializeObject(new CaptionRequest
                     {
                         Caption = "",
                     })));

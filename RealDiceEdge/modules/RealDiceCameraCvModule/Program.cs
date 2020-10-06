@@ -7,6 +7,7 @@ namespace RealDiceCameraCvModule
     using Newtonsoft.Json;
     using OpenCvSharp;
     using OpenCvSharp.Extensions;
+    using RealDiceCameraCvModule.Models;
     using RealDiceCommon;
     using System;
     using System.IO;
@@ -52,7 +53,7 @@ namespace RealDiceCameraCvModule
                 }
             }
         }
-        static string caption;
+        static CaptionRequest caption;
         static System.Drawing.Font captionFont;
         static System.Drawing.Font smallFont;
         static string videoExtension = ".avi";
@@ -106,7 +107,7 @@ namespace RealDiceCameraCvModule
             videoInputStream = new VideoInputStream(0);
             videoInputStream.Start();
 
-            caption = "";
+            caption = new CaptionRequest { Caption = "" };
             captionFont = new System.Drawing.Font("noto", 15f);
             smallFont = new System.Drawing.Font("noto", 10f);
 
@@ -130,11 +131,11 @@ namespace RealDiceCameraCvModule
             var request = context.Request;
             var response = context.Response;
             var requestJson = request.InputStream.ReadString();
-            var requestObj = JsonConvert.DeserializeObject<dynamic>(requestJson);
+            var requestObj = JsonConvert.DeserializeObject<CaptionRequest>(requestJson);
 
-            caption = requestObj.Caption;
+            caption = requestObj;
 
-            WriteLog($"SetCaption {caption}");
+            WriteLog($"SetCaption {requestJson}");
             response.StatusCode = (int)HttpStatusCode.NoContent;
             response.Close();
 
@@ -155,7 +156,7 @@ namespace RealDiceCameraCvModule
                     frame = frame.Resize(GetOutputSize(frame.Size()));
                     x.Dispose();
                 }
-                if (!string.IsNullOrEmpty(caption))
+                if (!string.IsNullOrEmpty(caption?.Caption))
                 {
                     var x = frame;
                     frame = PutCaption(frame, caption, captionFont);
@@ -166,15 +167,36 @@ namespace RealDiceCameraCvModule
             }
         }
 
-        static Mat PutCaption(Mat image, string caption, System.Drawing.Font font)
+        static int RatioToAbs(float ratio, int max)
+        {
+            return (int)(ratio * max);
+        }
+        static Mat PutCaption(Mat image, CaptionRequest caption, System.Drawing.Font font)
         {
             WriteLog($"PutCaption {caption}");
             var size = image.Size();
             using (var bitmap = image.ToBitmap())
             using (var g = System.Drawing.Graphics.FromImage(bitmap))
             {
-                var captionSize = g.MeasureString(caption, font);
-                g.DrawString(caption, font, System.Drawing.Brushes.Azure,
+                if (caption.CognitiveResult != null && caption.CognitiveResult.predictions != null)
+                {
+                    foreach (var prediction in caption.CognitiveResult.predictions)
+                    {
+                        var rect = new System.Drawing.Rectangle(
+                            RatioToAbs(prediction.boundingBox.left, size.Width),
+                            RatioToAbs(prediction.boundingBox.top, size.Height),
+                            RatioToAbs(prediction.boundingBox.width, size.Width),
+                            RatioToAbs(prediction.boundingBox.height, size.Height)
+                        );
+                        g.DrawRectangle(System.Drawing.Pens.Azure, rect);
+                        g.DrawString($"{prediction.tagName}({prediction.probability})", font, System.Drawing.Brushes.Azure,
+                            rect.Left,
+                            rect.Bottom + 2);
+                    }
+                }
+
+                var captionSize = g.MeasureString(caption.Caption, font);
+                g.DrawString(caption.Caption, font, System.Drawing.Brushes.Azure,
                     size.Width / 2 - captionSize.Width / 2,
                     size.Height - captionSize.Height - 4);
                 // XXX なんかVideoCaputureしたMatに位置情報が入っている感じがする

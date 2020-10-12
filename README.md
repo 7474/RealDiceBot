@@ -10,7 +10,7 @@
 
 https://twitter.com/RealDiceBot
 
->![](docs/images/twitter.png)
+>![](docs/images/twitter.gif)
 
 ## Slack RealDiceBot App
 

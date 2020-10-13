@@ -10,10 +10,8 @@ namespace RealDiceCameraCvModule
     using RealDiceCameraCvModule.Models;
     using RealDiceCommon;
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,7 +26,7 @@ namespace RealDiceCameraCvModule
         static VideoInputStream videoInputStream;
         static object syncOutput = new object();
         static VideoOutputStream videoOutputStream;
-        static Process liveStreamProcess;
+        static FfmpegRtmpVideoOutputStream videoLiveStream;
         static System.Timers.Timer frameTimer;
         static object syncRoot = new object();
         static Mat _lastFrame;
@@ -75,6 +73,8 @@ namespace RealDiceCameraCvModule
             frameTimer.Stop();
             videoInputStream.Stop();
             videoInputStream.Dispose();
+            videoLiveStream.Stop();
+            videoLiveStream.Dispose();
         }
 
         /// <summary>
@@ -113,31 +113,9 @@ namespace RealDiceCameraCvModule
             videoInputStream.Start();
 
             var rtmpUri = Environment.GetEnvironmentVariable("RTMP_URI");
-            liveStreamProcess = new Process()
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "ffmpeg",
-                    // XXX size
-                    Arguments = 
-                        //$"-re -y " +
-                        "-re " +
-                        "-ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero " + 
-                        $"-f rawvideo -pixel_format argb -video_size 320x240 -framerate {fps} -i - " +
-                        // XXX build ffmpeg
-                        //$"-c:v h264_omx " +
-                        "-c:v libx264 -pix_fmt yuv420p -profile:v baseline -level:v 4.1 -s 320x240 " +
-                        "-minrate 256k -maxrate 512k -bufsize 512k " +
-                        "-acodec aac -ab 128k -g 2 " +
-                        "-strict experimental " +
-                        // https://stackoverflow.com/questions/45220915/ffmpeg-streaming-error-failed-to-update-header-with-correct-filesize-and-durati
-                        $"-f flv -flvflags no_duration_filesize {rtmpUri} ",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardInput = true,
-                }
-            };
-            liveStreamProcess.Start();
+            // XXX Size
+            videoLiveStream = new FfmpegRtmpVideoOutputStream(rtmpUri, 15, new Size(320, 240));
+            videoLiveStream.Start();
 
             caption = new CaptionRequest { Caption = "" };
             captionFont = new System.Drawing.Font("noto", 15f);
@@ -194,21 +172,7 @@ namespace RealDiceCameraCvModule
                     frame = PutCaption(frame, caption, captionFont);
                     x.Dispose();
                 }
-                if (!liveStreamProcess.HasExited)
-                {
-                    // https://taktak.jp/2017/04/12/2014
-                    var raw = new byte[frame.Total()];
-                    Marshal.Copy(frame.Data, raw, 0, raw.Length);
-                    if (raw.Length > 0)
-                    {
-                        //WriteLog($"liveStreamProcess.StandardInput.BaseStream.Write {raw.Length}");
-                        //liveStreamProcess.StandardInput.BaseStream.Write(raw, 0, raw.Length);
-                    }
-                }
-                else
-                {
-                    //WriteLog($"liveStreamProcess.HasExited");
-                }
+                videoLiveStream.Write(frame.Clone());
                 lock (syncOutput)
                 {
                     if (videoOutputStream != null)

@@ -1,7 +1,5 @@
 using OpenCvSharp;
 using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace RealDiceCameraCvModule
@@ -33,15 +31,9 @@ namespace RealDiceCameraCvModule
                     videoWriter.Write(image);
                     image.Dispose();
                 }
-                //else if (lastFrame != null)
-                //{
-                //    WriteLog("  lastFrame");
-                //    // XXX どうもフレーム毎に位置情報が付加されている感じがする
-                //    videoWriter.Write(lastFrame);
-                //}
                 else
                 {
-                    WriteLog("WriteFrame: Skip");
+                    WriteLog("VideoOutputStream#WriteFrame: Skip");
                 }
             }
             catch (Exception ex)

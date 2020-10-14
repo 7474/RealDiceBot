@@ -24,7 +24,9 @@ namespace RealDiceCameraCvModule
         static double fps = 15;
         static CloudBlobContainer cloudBlobContainer;
         static VideoInputStream videoInputStream;
+        static object syncOutput = new object();
         static VideoOutputStream videoOutputStream;
+        static FfmpegRtmpVideoOutputStream videoLiveStream;
         static System.Timers.Timer frameTimer;
         static object syncRoot = new object();
         static Mat _lastFrame;
@@ -68,8 +70,11 @@ namespace RealDiceCameraCvModule
             Console.CancelKeyPress += (sender, cpe) => cts.Cancel();
             WhenCancelled(cts.Token).Wait();
             http.Stop();
+            frameTimer.Stop();
             videoInputStream.Stop();
             videoInputStream.Dispose();
+            videoLiveStream.Stop();
+            videoLiveStream.Dispose();
         }
 
         /// <summary>
@@ -107,12 +112,18 @@ namespace RealDiceCameraCvModule
             videoInputStream = new VideoInputStream(0);
             videoInputStream.Start();
 
+            var rtmpUri = Environment.GetEnvironmentVariable("RTMP_URI");
+            // XXX Size
+            videoLiveStream = new FfmpegRtmpVideoOutputStream(rtmpUri, fps, new Size(320, 240));
+            videoLiveStream.Start();
+
             caption = new CaptionRequest { Caption = "" };
             captionFont = new System.Drawing.Font("noto", 15f);
             smallFont = new System.Drawing.Font("noto", 10f);
 
             frameTimer = new System.Timers.Timer(1.0 / fps);
             frameTimer.Elapsed += UpdateFrame;
+            frameTimer.Start();
 
             http = new HttpRouter(new string[] { "http://+:80/" });
             http.Register("/caption", SetCaption);
@@ -142,28 +153,49 @@ namespace RealDiceCameraCvModule
             return Task.CompletedTask;
         }
 
+        static bool updateFrameProcessing = false;
         static void UpdateFrame(object sender, ElapsedEventArgs e)
         {
-            var frame = videoInputStream.Read();
-            if (frame != null)
+            if (updateFrameProcessing)
             {
-                WriteLog($"UpdateFrame");
-                lastOriginalFrame = frame.Clone();
+                WriteLog("Skip UpdateFrame. UpdateFrameProcessing...");
+                return;
+            }
+            try
+            {
+                updateFrameProcessing = true;
+                var frame = videoInputStream.Read();
+                if (frame != null)
+                {
+                    lastOriginalFrame = frame.Clone();
 
-                if (frame.Size() != GetOutputSize(frame.Size()))
-                {
-                    var x = frame;
-                    frame = frame.Resize(GetOutputSize(frame.Size()));
-                    x.Dispose();
+                    if (frame.Size() != GetOutputSize(frame.Size()))
+                    {
+                        var x = frame;
+                        frame = frame.Resize(GetOutputSize(frame.Size()));
+                        x.Dispose();
+                    }
+                    if (!string.IsNullOrEmpty(caption?.Caption))
+                    {
+                        var x = frame;
+                        frame = PutCaption(frame, caption, captionFont);
+                        x.Dispose();
+                    }
+                    videoLiveStream.Write(frame.Clone());
+                    lock (syncOutput)
+                    {
+                        if (videoOutputStream != null)
+                        {
+                            //WriteLog($"videoOutputStream.Write");
+                            videoOutputStream.Write(frame);
+                        }
+                    }
+                    lastFrame = frame;
                 }
-                if (!string.IsNullOrEmpty(caption?.Caption))
-                {
-                    var x = frame;
-                    frame = PutCaption(frame, caption, captionFont);
-                    x.Dispose();
-                }
-                videoOutputStream.Write(frame);
-                lastFrame = frame;
+            }
+            finally
+            {
+                updateFrameProcessing = false;
             }
         }
 
@@ -173,7 +205,7 @@ namespace RealDiceCameraCvModule
         }
         static Mat PutCaption(Mat image, CaptionRequest caption, System.Drawing.Font font)
         {
-            WriteLog($"PutCaption {caption}");
+            //WriteLog($"PutCaption {caption?.Caption}");
             var size = image.Size();
             using (var bitmap = image.ToBitmap())
             using (var g = System.Drawing.Graphics.FromImage(bitmap))
@@ -210,26 +242,30 @@ namespace RealDiceCameraCvModule
         static Task StartRecording(HttpListenerContext context)
         {
             WriteLog($"StartRecording");
-            if (videoOutputStream != null)
-            {
-                throw new ApplicationException("Already recording");
-            }
+
             var request = context.Request;
             var response = context.Response;
 
-            var videoName = GetTimestampString() + videoExtension;
-            var videoFilePath = Path.Combine(videoDir, videoName);
-            WriteLog($"    {videoName}");
-            Directory.CreateDirectory(Path.GetDirectoryName(videoFilePath));
-            var frame = _lastOriginalFrame != null
-                ? lastOriginalFrame
-                : videoInputStream.Read();
+            lock (syncOutput)
+            {
+                if (videoOutputStream != null)
+                {
+                    throw new ApplicationException("Already recording");
+                }
 
-            var frameSize = frame.Size();
-            WriteLog($"    {frameSize.Width}x{frameSize.Height}");
-            videoOutputStream = new VideoOutputStream(videoFilePath, FourCC.XVID, 15, GetOutputSize(frameSize));
-            videoOutputStream.Start();
-            frameTimer.Start();
+                var videoName = GetTimestampString() + videoExtension;
+                var videoFilePath = Path.Combine(videoDir, videoName);
+                WriteLog($"    {videoName}");
+                Directory.CreateDirectory(Path.GetDirectoryName(videoFilePath));
+                var frame = _lastOriginalFrame != null
+                    ? lastOriginalFrame
+                    : videoInputStream.Read();
+
+                var frameSize = frame.Size();
+                WriteLog($"    {frameSize.Width}x{frameSize.Height}");
+                videoOutputStream = new VideoOutputStream(videoFilePath, FourCC.XVID, 15, GetOutputSize(frameSize));
+                videoOutputStream.Start();
+            }
 
             response.StatusCode = (int)HttpStatusCode.NoContent;
             response.Close();
@@ -243,21 +279,27 @@ namespace RealDiceCameraCvModule
             WriteLog($"EndRecording");
             var request = context.Request;
             var response = context.Response;
+
+            var hasOutput = false;
+            var filePath = "";
             var videoFileName = "";
-
-            if (videoOutputStream != null)
+            lock (syncOutput)
             {
-                var filePath = videoOutputStream.FileName;
-                WriteLog($"    {filePath}");
+                if (videoOutputStream != null)
+                {
+                    hasOutput = true;
+                    filePath = videoOutputStream.FileName;
+                    WriteLog($"    {filePath}");
+                    videoOutputStream.Stop();
+                    WriteLog($"    videoOutputStream.Stop");
+                    videoOutputStream.Dispose();
+                    WriteLog($"    videoOutputStream.Dispose");
+                    videoOutputStream = null;
+                }
+            }
 
-                frameTimer.Stop();
-                WriteLog($"    frameTimer.Stop");
-                videoOutputStream.Stop();
-                WriteLog($"    videoOutputStream.Stop");
-                videoOutputStream.Dispose();
-                WriteLog($"    videoOutputStream.Dispose");
-                videoOutputStream = null;
-
+            if (hasOutput)
+            {
                 videoFileName = GetDateString() + "/" + Guid.NewGuid().ToString() + videoExtension;
                 WriteLog($"    {videoFileName}");
                 var blob = cloudBlobContainer.GetBlockBlobReference(videoFileName);
@@ -268,6 +310,7 @@ namespace RealDiceCameraCvModule
                 // XXX やっぱファイル消すとダメな感じ。await もう少し見よう。
                 //File.Delete(filePath);
                 //WriteLog($"    File.Delete end");
+
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
             else

@@ -16,6 +16,8 @@ RUN apt-get update \
         # .NET Core Imaging dependencies
         libc6-dev \
         libgdiplus \
+        # For RTMP output
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

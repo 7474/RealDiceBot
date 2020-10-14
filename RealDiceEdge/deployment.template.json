@@ -90,12 +90,16 @@
               },
               "RESULT_CONTAINER_NAME": {
                 "value": "realdiceresults"
+              },
+              "RTMP_URI": {
+                "value": "$RTMP_URI"
               }
             },
             "settings": {
               "image": "${MODULES.RealDiceCameraCvModule.arm32v7}",
               "createOptions": {
                 "HostConfig": {
+                  "Privileged": true,
                   "Binds": [
                     "/var/realdice/video:/var/realdice/video",
                     "/var/realdice/photo:/var/realdice/photo",

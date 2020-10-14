@@ -114,7 +114,7 @@ namespace RealDiceCameraCvModule
 
             var rtmpUri = Environment.GetEnvironmentVariable("RTMP_URI");
             // XXX Size
-            videoLiveStream = new FfmpegRtmpVideoOutputStream(rtmpUri, 15, new Size(320, 240));
+            videoLiveStream = new FfmpegRtmpVideoOutputStream(rtmpUri, fps, new Size(320, 240));
             videoLiveStream.Start();
 
             caption = new CaptionRequest { Caption = "" };
@@ -153,35 +153,49 @@ namespace RealDiceCameraCvModule
             return Task.CompletedTask;
         }
 
+        static bool updateFrameProcessing = false;
         static void UpdateFrame(object sender, ElapsedEventArgs e)
         {
-            var frame = videoInputStream.Read();
-            if (frame != null)
+            if (updateFrameProcessing)
             {
-                lastOriginalFrame = frame.Clone();
+                WriteLog("Skip UpdateFrame. UpdateFrameProcessing...");
+                return;
+            }
+            try
+            {
+                updateFrameProcessing = true;
+                var frame = videoInputStream.Read();
+                if (frame != null)
+                {
+                    lastOriginalFrame = frame.Clone();
 
-                if (frame.Size() != GetOutputSize(frame.Size()))
-                {
-                    var x = frame;
-                    frame = frame.Resize(GetOutputSize(frame.Size()));
-                    x.Dispose();
-                }
-                if (!string.IsNullOrEmpty(caption?.Caption))
-                {
-                    var x = frame;
-                    frame = PutCaption(frame, caption, captionFont);
-                    x.Dispose();
-                }
-                videoLiveStream.Write(frame.Clone());
-                lock (syncOutput)
-                {
-                    if (videoOutputStream != null)
+                    if (frame.Size() != GetOutputSize(frame.Size()))
                     {
-                        WriteLog($"videoOutputStream.Write");
-                        videoOutputStream.Write(frame);
+                        var x = frame;
+                        frame = frame.Resize(GetOutputSize(frame.Size()));
+                        x.Dispose();
                     }
+                    if (!string.IsNullOrEmpty(caption?.Caption))
+                    {
+                        var x = frame;
+                        frame = PutCaption(frame, caption, captionFont);
+                        x.Dispose();
+                    }
+                    videoLiveStream.Write(frame.Clone());
+                    lock (syncOutput)
+                    {
+                        if (videoOutputStream != null)
+                        {
+                            //WriteLog($"videoOutputStream.Write");
+                            videoOutputStream.Write(frame);
+                        }
+                    }
+                    lastFrame = frame;
                 }
-                lastFrame = frame;
+            }
+            finally
+            {
+                updateFrameProcessing = false;
             }
         }
 
@@ -191,7 +205,7 @@ namespace RealDiceCameraCvModule
         }
         static Mat PutCaption(Mat image, CaptionRequest caption, System.Drawing.Font font)
         {
-            WriteLog($"PutCaption {caption?.Caption}");
+            //WriteLog($"PutCaption {caption?.Caption}");
             var size = image.Size();
             using (var bitmap = image.ToBitmap())
             using (var g = System.Drawing.Graphics.FromImage(bitmap))

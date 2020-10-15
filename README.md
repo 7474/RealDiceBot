@@ -35,3 +35,10 @@ WebブラウザのチャットUIで何か入力するとダイスを振った結
 https://realdicebot.azurewebsites.net/
 
 >![](docs/images/webchat.png)
+
+## Live ReadDiceBot
+
+IoT Edgeデバイスの様子はYouTube Liveで配信しています。
+
+https://youtu.be/iHQvaBvVZN4
+

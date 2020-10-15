@@ -4,6 +4,12 @@
 
 電動ダイスをAzure IoT EdgeデバイスのRaspberry Pi 3で制御して写真を撮っています。出目の判断もRaspberry Pi上で行っています。2と3の判断が甘いです。
 
+## Live ReadDiceBot
+
+IoT Edgeデバイスの様子はYouTube Liveで配信しています。
+
+https://youtu.be/iHQvaBvVZN4
+
 ## Twitter @RealDiceBot
 
 話しかけられるとダイスを振った結果を返信します。
@@ -35,10 +41,3 @@ WebブラウザのチャットUIで何か入力するとダイスを振った結
 https://realdicebot.azurewebsites.net/
 
 >![](docs/images/webchat.png)
-
-## Live ReadDiceBot
-
-IoT Edgeデバイスの様子はYouTube Liveで配信しています。
-
-https://youtu.be/iHQvaBvVZN4
-
